@@ -1,18 +1,5 @@
+
 require("util")
-
-
-local function add_glow(animation)
-    if animation.layers then
-        for _, layer in pairs(animation.layers) do
-            add_glow(layer)
-        end
-    else
-
-        local original_layers = util.table.deepcopy(animation.layers)
-        -- local new_layer = util.table.deepcopy(animation.layers)
-
-    end
-end
 
 local tree_glow = {
     type = "sprite",
