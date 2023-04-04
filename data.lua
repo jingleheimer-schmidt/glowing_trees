@@ -49,19 +49,5 @@ for _, tree in pairs(data.raw.tree) do
                 variation.overlay = glow_animation_glow
             end
         end
-    -- elseif tree.pictures then
-    --     local pictures = tree.pictures
-    --     if pictures.layers then
-    --         -- local glow_layer = util.table.deepcopy(pictures.layers)
-    --     else
-    --         local glow_layer = util.table.deepcopy(pictures)
-    --         if not (glow_layer.draw_as_shadow or glow_layer.draw_as_glow or glow_layer.draw_as_light) then
-    --             glow_layer.draw_as_light = true
-    --             tree.pictures.layers = {
-    --                 pictures,
-    --                 glow_layer
-    --             }
-    --         end
-    --     end
     end
 end
