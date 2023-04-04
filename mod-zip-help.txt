@@ -1,0 +1,20 @@
+Reference: https://wiki.factorio.com/Tutorial:Mod_structure
+
+---- = inside the above folder/directory or zip
+
+If the mod is extracted to a folder, the structure is as follows:
+mods
+----modname_VERSION
+--------info.json (with matching "name" = "modname" and "version" = "VERSION")
+--------other mod files
+
+In a zip:
+mods
+----zipname_VERSION.zip
+--------any_folder_name (modname_VERSION is most obvious)
+------------info.json
+------------other mod files
+
+A folder takes precedence over a zipped file.
+For advanced editing, the folder can have "_VERSION" omitted. This makes development simpler with git and other tools.
+!! change the author to yourself before distributing

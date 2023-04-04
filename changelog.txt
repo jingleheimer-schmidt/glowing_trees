@@ -1,0 +1,33 @@
+---------------------------------------------------------------------------------------------------
+Version: 0.0.15
+Date: 2021,10,01
+  Info:
+    - changelogs are usually written in descending order (most recent is usually most relevant)
+    - read this example changelog bottom-to-top out-of-game, top-to-bottom in-game
+    - for ease, copy/paste as much as needed (like the 99 hyphens!)
+    - the changelog will appear on the website in descending order
+    - weird date example with commas
+---------------------------------------------------------------------------------------------------
+Version: 0.0.2
+Date: 2021-08-01
+  Info:
+    - version increment
+---------------------------------------------------------------------------------------------------
+Version: 0.0.1
+Date: 2021-07-19
+  Info:
+    - changelogs are optional, but convenient
+    - Changelog tutorial: https://forums.factorio.com/viewtopic.php?f=25&t=67140
+    - The changelog format is specific. 99 hyphens above an entry
+    - <----four spaces, -, and space indent
+      after six spaces, anything can go here
+  special heading:
+    - each change header / category can be anything. built-in matches sort left, other headings sort right
+    - built-ins : https://forums.factorio.com/viewtopic.php?p=409587#p409587
+    - nothing needed below entry
+  Dates:
+    - any format (not strict at all? hyphens, slashes, commas...)
+    - optional
+  Version:
+    - doesn't need to match anything. strictly for sorting / display
+    - always sorted *ascending* with numeric awareness (0.0.1 -> 0.0.2 -> 0.0.15) in-game
