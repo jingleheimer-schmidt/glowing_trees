@@ -45,36 +45,44 @@ local sprite_animation_small_1 = {
     apply_runtime_tint = true,
 }
 
-local sprites_by_frame_count = {
-    [1] = sprite_animation_small_1,
-    [2] = nil,
-    [3] = sprite_animation_small_3,
-}
+-- local sprites_by_frame_count = {
+--     [1] = sprite_animation_small_1,
+--     [2] = nil,
+--     [3] = sprite_animation_small_3,
+-- }
 
-local lights_by_frame_count = {
-    [1] = light_animation_small_1,
-    [2] = nil,
-    [3] = light_animation_small_3,
-}
+-- local lights_by_frame_count = {
+--     [1] = light_animation_small_1,
+--     [2] = nil,
+--     [3] = light_animation_small_3,
+-- }
 
 for _, tree in pairs(data.raw.tree) do
     if tree.variations then
         for _, variation in pairs(tree.variations) do
-            local frame_count = variation.leaves.frame_count or variation.leaves.layers[1].frame_count
+            local original_frame_count = variation.leaves.frame_count
+            local original_repeat_count = variation.leaves.repeat_count or 1
+            if variation.leaves.layers then
+                original_frame_count = variation.leaves.layers[1].frame_count
+                original_repeat_count = variation.leaves.layers[1].repeat_count or 1
+            end
+            local new_repeat_count = original_frame_count * original_repeat_count
+            light_animation_small_1.repeat_count = new_repeat_count
+            sprite_animation_small_1.repeat_count = new_repeat_count
             if variation.overlay then
                 local animation = util.table.deepcopy(variation.overlay)
                 variation.overlay = {
                     layers = {
                         animation,
-                        sprites_by_frame_count[frame_count],
-                        lights_by_frame_count[frame_count]
+                        sprite_animation_small_1,
+                        light_animation_small_1
                     }
                 }
             else
                 variation.overlay = {
                     layers = {
-                        sprites_by_frame_count[frame_count],
-                        lights_by_frame_count[frame_count]
+                        sprite_animation_small_1,
+                        light_animation_small_1
                     }
                 }
             end
