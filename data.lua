@@ -5,21 +5,55 @@ local glow_animation_light = {
     filename = "__glowing_trees__/glow_3_5%.png",
     width = 820,
     height = 826,
-    scale = 3/4,
+    scale = 0.6,
     frame_count = 3,
     draw_as_light = true,
-    blend_mode = "additive-soft"
+    blend_mode = "additive-soft",
+    apply_runtime_tint = true,
 }
 
 local glow_animation_glow = {
     filename = "__glowing_trees__/glow_3_25%.png",
     width = 820,
     height = 826,
-    scale = 0.5,
+    scale = 0.4,
     frame_count = 3,
     draw_as_glow = true,
     blend_mode = "additive-soft",
-    apply_runtime_tint = true
+    apply_runtime_tint = true,
+}
+
+local glow_animation_small = {
+    filename = "__glowing_trees__/small_pngs/glow_3_1%.png",
+    width = 205,
+    height = 207,
+    scale = 5,
+    frame_count = 3,
+    draw_as_glow = true,
+    blend_mode = "additive-soft",
+    apply_runtime_tint = true,
+}
+
+local light_animation_small = {
+    filename = "__glowing_trees__/small_pngs/glow_3_5%.png",
+    width = 205,
+    height = 207,
+    scale = 5,
+    frame_count = 3,
+    draw_as_light = true,
+    blend_mode = "additive-soft",
+    apply_runtime_tint = true,
+}
+
+local sprite_animation_small = {
+    filename = "__glowing_trees__/small_pngs/glow_3_1%.png",
+    width = 205,
+    height = 207,
+    scale = 3,
+    frame_count = 3,
+    -- draw_as_glow = true,
+    blend_mode = "additive-soft",
+    apply_runtime_tint = true,
 }
 
 for _, tree in pairs(data.raw.tree) do
@@ -28,11 +62,24 @@ for _, tree in pairs(data.raw.tree) do
             if variation.overlay then
                 local animation = util.table.deepcopy(variation.overlay)
                 variation.overlay = {
-                    animation,
-                    glow_animation_glow
+                    layers = {
+                        animation,
+                        -- glow_animation_glow,
+                        -- glow_animation_small,
+                        -- homemade_glow
+                        sprite_animation_small,
+                        light_animation_small
+                    }
                 }
             else
-                variation.overlay = glow_animation_glow
+                -- variation.overlay = glow_animation_glow
+                variation.overlay = {
+                    layers = {
+                        sprite_animation_small,
+                        light_animation_small
+                        -- glow_animation_small,
+                    }
+                }
             end
         end
     end
