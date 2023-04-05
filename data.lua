@@ -1,20 +1,6 @@
 
 require("util")
 
-local tree_glow = {
-    type = "sprite",
-    name = "tree_glow",
-    filename = "__glowing_trees__/glow.png",
-    priority = "high",
-    width = 820,
-    height = 826,
-    scale = 1/11,
-}
-
-data:extend({
-    tree_glow
-})
-
 local glow_animation_light = {
     filename = "__glowing_trees__/glow_3_5%.png",
     width = 820,
