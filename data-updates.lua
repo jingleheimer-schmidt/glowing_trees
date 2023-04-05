@@ -1,39 +1,6 @@
 
 require("util")
 
-local glow_animation_light = {
-    filename = "__glowing_trees__/glow_3_5%.png",
-    width = 820,
-    height = 826,
-    scale = 0.6,
-    frame_count = 3,
-    draw_as_light = true,
-    blend_mode = "additive-soft",
-    apply_runtime_tint = true,
-}
-
-local glow_animation_glow = {
-    filename = "__glowing_trees__/glow_3_25%.png",
-    width = 820,
-    height = 826,
-    scale = 0.4,
-    frame_count = 3,
-    draw_as_glow = true,
-    blend_mode = "additive-soft",
-    apply_runtime_tint = true,
-}
-
-local glow_animation_small = {
-    filename = "__glowing_trees__/small_pngs/glow_3_1%.png",
-    width = 205,
-    height = 207,
-    scale = 5,
-    frame_count = 3,
-    draw_as_glow = true,
-    blend_mode = "additive-soft",
-    apply_runtime_tint = true,
-}
-
 local light_animation_small = {
     filename = "__glowing_trees__/small_pngs/glow_3_5%.png",
     width = 205,
