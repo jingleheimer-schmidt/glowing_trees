@@ -82,12 +82,13 @@ for _, tree in pairs(data.raw.tree) do
         for _, variation in pairs(tree.variations) do
             local light = table.deepcopy(light_animation_small_1)
             local sprite = table.deepcopy(sprite_animation_small_1)
-            local original_frame_count = variation.leaves.frame_count
-            local original_repeat_count = variation.leaves.repeat_count or 1
-            if variation.leaves.layers then
-                original_frame_count = variation.leaves.layers[1].frame_count
-                original_repeat_count = variation.leaves.layers[1].repeat_count or 1
-            end
+
+            local original_frame_count = get_frame_count(variation.leaves)
+            local original_repeat_count = get_repeat_count(variation.leaves) or 1
+            -- if variation.leaves.layers then
+            --     original_frame_count = variation.leaves.layers[1].frame_count
+            --     original_repeat_count = variation.leaves.layers[1].repeat_count or 1
+            -- end
             local new_repeat_count = original_frame_count * original_repeat_count
             light.repeat_count = new_repeat_count
             sprite.repeat_count = new_repeat_count
