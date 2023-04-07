@@ -5,8 +5,8 @@ local glow_scale = {
     setting_type = "startup",
     default_value = "Default",
     allowed_values = {
-        "None",
-        "Miniscule",
+        -- "None",
+        -- "Miniscule",
         "Tiny",
         "Small",
         "Medium",
@@ -18,6 +18,22 @@ local glow_scale = {
     order = "a"
 }
 
+local glow_aura = {
+    type = "bool-setting",
+    name = "glowing_trees_aura",
+    setting_type = "startup",
+    default_value = true,
+}
+
+local glow_leaves = {
+    type = "bool-setting",
+    name = "glowing_trees_leaves",
+    setting_type = "startup",
+    default_value = true,
+}
+
 data:extend({
     glow_scale,
+    glow_aura,
+    glow_leaves,
 })
