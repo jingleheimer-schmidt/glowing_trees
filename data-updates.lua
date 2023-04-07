@@ -39,6 +39,44 @@ local sprite_animation_small_1 = {
     apply_runtime_tint = true,
 }
 
+local function get_frame_count(animation)
+    if not animation.layers then
+        return animation.frame_count
+    else
+        return get_frame_count(animation.layers[1])
+    end
+end
+
+local function get_repeat_count(animation)
+    if not animation.layers then
+        return animation.repeat_count
+    else
+        return get_repeat_count(animation.layers[1])
+    end
+end
+
+local function draw_as_light_recursive(animation)
+    if not animation.layers then
+        animation.draw_as_light = true
+    else
+        for _, layer in pairs(animation.layers) do
+            draw_as_light_recursive(layer)
+        end
+    end
+end
+
+local function draw_as_glow_recursive(animation)
+    if not animation.layers then
+        if not (animation.draw_as_shadow or animation.draw_as_light or animation.draw_as_glow) then
+            animation.draw_as_glow = true
+        end
+    else
+        for _, layer in pairs(animation.layers) do
+            draw_as_glow_recursive(layer)
+        end
+    end
+end
+
 for _, tree in pairs(data.raw.tree) do
     if tree.variations then
         for _, variation in pairs(tree.variations) do
