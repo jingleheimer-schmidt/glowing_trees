@@ -14,6 +14,8 @@ local glow_scales = {
 }
 
 local scale = glow_scales[settings.startup["glowing_trees_scale"].value]
+local leaves_enabled = settings.startup["glowing_trees_leaves"].value
+local aura_enabled = settings.startup["glowing_trees_aura"].value
 
 local light_animation_small_1 = {
     filename = "__glowing_trees__/source_media/small_pngs/frame_count_1/glow_1_25%.png",
