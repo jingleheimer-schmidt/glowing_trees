@@ -34,7 +34,6 @@ local sprite_animation_small_1 = {
     height = 207,
     scale = scale,
     frame_count = 1,
-    -- draw_as_glow = true,
     blend_mode = "additive-soft",
     apply_runtime_tint = true,
 }
@@ -85,34 +84,14 @@ for _, tree in pairs(data.raw.tree) do
 
             local original_frame_count = get_frame_count(variation.leaves)
             local original_repeat_count = get_repeat_count(variation.leaves) or 1
-            -- if variation.leaves.layers then
-            --     original_frame_count = variation.leaves.layers[1].frame_count
-            --     original_repeat_count = variation.leaves.layers[1].repeat_count or 1
-            -- end
             local new_repeat_count = original_frame_count * original_repeat_count
             light.repeat_count = new_repeat_count
             sprite.repeat_count = new_repeat_count
 
             if leaves_enabled then
                 if variation.leaves then
-                    -- local glowing_leaves = util.table.deepcopy(variation.leaves)
-                    -- -- draw_as_light_recursive(glowing_leaves)
-                    -- draw_as_glow_recursive(glowing_leaves)
-                    -- -- if glowing_leaves.layers then
-                    -- --     for _, layer in pairs(glowing_leaves) do
-                    -- --         layer.draw_as_light = true
-                    -- --     end
-                    -- -- else
-                    -- --     glowing_leaves.draw_as_light = true
-                    -- -- end
-                    -- local original_leaves = util.table.deepcopy(variation.leaves)
-                    -- variation.leaves = {
-                    --     layers = {
-                    --         glowing_leaves,
-                    --         original_leaves,
-                    --     }
-                    -- }
                     draw_as_glow_recursive(variation.leaves)
+                    -- draw_as_light_recursive(variation.leaves)
                 end
             end
 
