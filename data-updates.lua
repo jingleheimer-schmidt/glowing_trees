@@ -68,6 +68,9 @@ local function draw_as_glow_recursive(animation)
     if not animation.layers then
         if not (animation.draw_as_shadow or animation.draw_as_light or animation.draw_as_glow) then
             animation.draw_as_glow = true
+            if animation.hr_version then
+                animation.hr_version.draw_as_glow = true
+            end
         end
     else
         for _, layer in pairs(animation.layers) do
