@@ -5,8 +5,6 @@ local glow_scale = {
     setting_type = "startup",
     default_value = "Default",
     allowed_values = {
-        -- "None",
-        -- "Miniscule",
         "Tiny",
         "Small",
         "Medium",

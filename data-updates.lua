@@ -2,15 +2,13 @@
 require("util")
 
 local glow_scales = {
-    ["None"] = 0,
-    ["Miniscule"] = 0.25,
-    ["Tiny"] = 0.5,
-    ["Small"] = 0.75,
-    ["Medium"] = 1,
-    ["Default"] = 1.5,
-    ["Large"] = 2,
-    ["Huge"] = 3,
-    ["Enormous"] = 5,
+    ["Tiny"] = 1,
+    ["Small"] = 3,
+    ["Medium"] = 4,
+    ["Default"] = 5,
+    ["Large"] = 6,
+    ["Huge"] = 7,
+    ["Enormous"] = 10,
 }
 
 local scale = glow_scales[settings.startup["glowing_trees_scale"].value]
