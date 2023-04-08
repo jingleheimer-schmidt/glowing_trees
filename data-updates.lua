@@ -116,7 +116,6 @@ for _, tree in pairs(data.raw.tree) do
             if leaves_enabled then
                 if variation.leaves then
                     draw_as_glow_recursive(variation.leaves)
-                    -- draw_as_light_recursive(variation.leaves)
                 end
             end
 
