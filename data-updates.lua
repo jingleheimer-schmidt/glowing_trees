@@ -18,10 +18,12 @@ local leaves_enabled = settings.startup["glowing_trees_leaves"].value
 local aura_enabled = settings.startup["glowing_trees_aura"].value
 
 local light_animation_small_1 = {
-    filename = "__glowing_trees__/source_media/small_pngs/frame_count_1/glow_1_5%.png",
-    width = 205,
-    height = 207,
-    scale = scale + scale / 3,
+    filename = "__glowing_trees__/source_media/tiny_pngs/frame_count_1/glow_1_5%.png",
+    -- width = 205,
+    -- height = 207,
+    width = 51,
+    height = 52,
+    scale = (scale + scale / 3) * 4,
     frame_count = 1,
     draw_as_light = true,
     blend_mode = "additive-soft",
@@ -29,10 +31,12 @@ local light_animation_small_1 = {
 }
 
 local sprite_animation_small_1 = {
-    filename = "__glowing_trees__/source_media/small_pngs/frame_count_1/glow_1_5%.png",
-    width = 205,
-    height = 207,
-    scale = scale,
+    filename = "__glowing_trees__/source_media/tiny_pngs/frame_count_1/glow_1_5%.png",
+    -- width = 205,
+    -- height = 207,
+    width = 51,
+    height = 52,
+    scale = scale * 4,
     frame_count = 1,
     blend_mode = "additive-soft",
     apply_runtime_tint = true,
@@ -106,7 +110,6 @@ for _, tree in pairs(data.raw.tree) do
                             animation,
                             light,
                             sprite,
-                            -- glowing_leaves
                         }
                     }
                 else
@@ -114,7 +117,6 @@ for _, tree in pairs(data.raw.tree) do
                         layers = {
                             light,
                             sprite,
-                            -- glowing_leaves
                         }
                     }
                 end
