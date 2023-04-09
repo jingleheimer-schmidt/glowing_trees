@@ -2,17 +2,17 @@
 require("util")
 
 local glow_scales = {
-    ["Tiny"] = 3,
+    ["Tiny"] = 4,
     ["Small"] = 5,
-    ["Medium"] = 7,
-    ["Default"] = 9,
-    ["Large"] = 11,
-    ["Huge"] = 13,
-    ["Enormous"] = 15,
+    ["Medium"] = 6,
+    ["Large"] = 7,
+    ["Huge"] = 8,
+    ["Enormous"] = 9,
 }
 
 local glow_chance_percents = {
     ["None"] = 0,
+    ["Few"] = 0.125,
     ["Some"] = 0.25,
     ["Half"] = 0.5,
     ["Most"] = 0.75,
