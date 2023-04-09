@@ -76,6 +76,60 @@ local function draw_as_glow_recursive(animation)
     end
 end
 
+local function set_animation_scale_recursive(animation, multiplier)
+    if not animation.layers then
+        animation.scale = (animation.scale or 1) * multiplier
+        if animation.hr_version then
+            animation.hr_version.scale = (animation.scale or 1) * multiplier
+        end
+    else
+        for _, layer in pairs(animation.layers) do
+            set_animation_scale_recursive(layer)
+        end
+    end
+end
+
+local function draw_as_light_recursive(animation)
+    if not animation.layers then
+        if not (animation.draw_as_shadow or animation.draw_as_light or animation.draw_as_glow) then
+            animation.draw_as_light = true
+            if animation.hr_version then
+                animation.hr_version.draw_as_light = true
+            end
+        end
+    else
+        for _, layer in pairs(animation.layers) do
+            draw_as_light_recursive(layer)
+        end
+    end
+end
+
+local function enable_runtime_tint_recursive(animation)
+    if not animation.layers then
+        animation.apply_runtime_tint = true
+        if animation.hr_version then
+            animation.hr_version.apply_runtime_tint = true
+        end
+    else
+        for _, layer in pairs(animation.layers) do
+            enable_runtime_tint_recursive(layer)
+        end
+    end
+end
+
+local function set_tint_recursive(animation, color)
+    if not animation.layers then
+        animation.tint = color
+        if animation.hr_version then
+            animation.hr_version.tint = color
+        end
+    else
+        for _, layer in pairs(animation.layers) do
+            set_tint_recursive(layer, color)
+        end
+    end
+end
+
 for _, tree in pairs(data.raw.tree) do
     if tree.variations then
         for _, variation in pairs(tree.variations) do
