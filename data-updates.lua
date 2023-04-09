@@ -25,21 +25,22 @@ local glow_aura_haze_chance = glow_chance_percents[settings.startup["glow_aura_h
 local glow_aura_light_chance = glow_chance_percents[settings.startup["glow_aura_light_chance"].value]
 
 local light_animation_small_1 = {
-    filename = "__glowing_trees__/source_media/tiny_pngs/frame_count_1/glow_1_25%.png",
+    filename = "__glowing_trees__/source_media/tiny_pngs/frame_count_1/glow_1_5%.png",
     width = 51,
     height = 52,
-    scale = scale + scale * 1.5,
+    scale = scale * 2,
     frame_count = 1,
     draw_as_light = true,
     blend_mode = "additive-soft",
-    apply_runtime_tint = true,
+    -- apply_runtime_tint = true,
+    -- tint = {r = 1, g = 1, b = 1, a = 0.5},
 }
 
 local sprite_animation_small_1 = {
     filename = "__glowing_trees__/source_media/tiny_pngs/frame_count_1/glow_1_5%.png",
     width = 51,
     height = 52,
-    scale = scale,
+    scale = scale * 2,
     frame_count = 1,
     blend_mode = "additive-soft",
     apply_runtime_tint = true,
