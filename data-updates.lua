@@ -11,9 +11,20 @@ local glow_scales = {
     ["Enormous"] = 15,
 }
 
-local scale = glow_scales[settings.startup["glowing_trees_scale"].value]
-local leaves_enabled = settings.startup["glowing_trees_leaves"].value
-local aura_enabled = settings.startup["glowing_trees_aura"].value
+local glow_chance_percents = {
+    ["None"] = 0,
+    ["Some"] = 0.25,
+    ["Half"] = 0.5,
+    ["Most"] = 0.75,
+    ["All"] = 1,
+}
+
+local scale = glow_scales[settings.startup["glow_aura_scale"].value]
+-- local leaves_enabled = settings.startup["glowing_trees_leaves"].value
+-- local aura_enabled = settings.startup["glowing_trees_aura"].value
+local glow_leaves_chance = glow_chance_percents[settings.startup["glowing_leaves_chance"].value]
+local glow_aura_haze_chance = glow_chance_percents[settings.startup["glow_aura_haze_chance"].value]
+local glow_aura_light_chance = glow_chance_percents[settings.startup["glow_aura_light_chance"].value]
 
 local light_animation_small_1 = {
     filename = "__glowing_trees__/source_media/tiny_pngs/frame_count_1/glow_1_25%.png",
@@ -113,30 +124,27 @@ for _, tree in pairs(data.raw.tree) do
             light.repeat_count = new_repeat_count
             sprite.repeat_count = new_repeat_count
 
-            if leaves_enabled then
+            if glow_leaves_chance >= math.random() then
                 if variation.leaves then
                     draw_as_glow_recursive(variation.leaves)
                 end
             end
 
-            if aura_enabled then
-                if variation.overlay then
-                    local animation = util.table.deepcopy(variation.overlay)
-                    variation.overlay = {
-                        layers = {
-                            animation,
-                            light,
-                            sprite,
-                        }
-                    }
-                else
-                    variation.overlay = {
-                        layers = {
-                            light,
-                            sprite,
-                        }
-                    }
-                end
+            local glow_overlay_layers = {
+                layers = {}
+            }
+            if variation.overlay then
+                local animation = util.table.deepcopy(variation.overlay)
+                table.insert(glow_overlay_layers.layers, animation)
+            end
+            if glow_aura_light_chance >= math.random() then
+                table.insert(glow_overlay_layers.layers, light)
+            end
+            if glow_aura_haze_chance >= math.random() then
+                table.insert(glow_overlay_layers.layers, sprite)
+            end
+            if glow_overlay_layers.layers[1] then
+                variation.overlay = glow_overlay_layers
             end
         end
     end
