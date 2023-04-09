@@ -133,8 +133,24 @@ end
 for _, tree in pairs(data.raw.tree) do
     if tree.variations then
         for _, variation in pairs(tree.variations) do
-            local light = table.deepcopy(light_animation_small_1)
-            local sprite = table.deepcopy(sprite_animation_small_1)
+            -- local light = table.deepcopy(light_animation_small_1)
+            -- local sprite = table.deepcopy(sprite_animation_small_1)
+            local light = util.table.deepcopy(variation.leaves)
+            local sprite = util.table.deepcopy(variation.leaves)
+
+            local scale_modifier = 1.1
+            -- local color = {r = 1, g = 1, b = 1, a = 0}
+            -- local color = tree.colors[math.random(1, #tree.colors)]
+            -- color.a = 0
+            local color = {r = 0, g = 0, b = 1, a = 0}
+            set_animation_scale_recursive(light, scale_modifier)
+            set_animation_scale_recursive(sprite, scale_modifier)
+            draw_as_light_recursive(light)
+            draw_as_light_recursive(sprite)
+            -- enable_runtime_tint_recursive(light)
+            -- enable_runtime_tint_recursive(sprite)
+            set_tint_recursive(light, color)
+            set_tint_recursive(sprite, color)
 
             local original_frame_count = get_frame_count(variation.leaves)
             local original_repeat_count = get_repeat_count(variation.leaves) or 1
