@@ -1,12 +1,4 @@
 
--- local glow_leaves = {
---     type = "bool-setting",
---     name = "glowing_trees_leaves",
---     setting_type = "startup",
---     default_value = true,
---     order = "a-1"
--- }
-
 local glow_leaves_chance = {
     type = "string-setting",
     name = "glowing_leaves_chance",
@@ -21,29 +13,6 @@ local glow_leaves_chance = {
     },
     order = "a-1"
 }
-
--- local glow_aura = {
---     type = "bool-setting",
---     name = "glowing_trees_aura",
---     setting_type = "startup",
---     default_value = true,
---     order = "b-1"
--- }
-
--- local glow_aura_chance = {
---     type = "string-setting",
---     name = "glow_aura_chance",
---     setting_type = "startup",
---     default_value = "Most",
---     allowed_values = {
---         "None",
---         "Some",
---         "Half",
---         "Most",
---         "All",
---     },
---     order = "b-1"
--- }
 
 local glow_aura_haze_chance = {
     type = "string-setting",
