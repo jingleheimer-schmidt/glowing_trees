@@ -28,8 +28,6 @@ local glow_aura_light_chance = glow_chance_percents[settings.startup["glow_aura_
 
 local light_animation_small_1 = {
     filename = "__glowing_trees__/source_media/tiny_pngs/frame_count_1/glow_1_25%.png",
-    -- width = 205,
-    -- height = 207,
     width = 51,
     height = 52,
     scale = scale + scale * 1.5,
@@ -40,8 +38,6 @@ local light_animation_small_1 = {
 }
 
 local sprite_animation_small_1 = {
-    -- width = 205,
-    -- height = 207,
     filename = "__glowing_trees__/source_media/tiny_pngs/frame_count_1/glow_1_5%.png",
     width = 51,
     height = 52,
