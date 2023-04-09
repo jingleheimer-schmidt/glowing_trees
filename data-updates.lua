@@ -40,9 +40,9 @@ local light_animation_small_1 = {
 }
 
 local sprite_animation_small_1 = {
-    filename = "__glowing_trees__/source_media/tiny_pngs/frame_count_1/glow_1_25%.png",
     -- width = 205,
     -- height = 207,
+    filename = "__glowing_trees__/source_media/tiny_pngs/frame_count_1/glow_1_5%.png",
     width = 51,
     height = 52,
     scale = scale,
