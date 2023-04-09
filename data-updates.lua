@@ -20,8 +20,6 @@ local glow_chance_percents = {
 }
 
 local scale = glow_scales[settings.startup["glow_aura_scale"].value]
--- local leaves_enabled = settings.startup["glowing_trees_leaves"].value
--- local aura_enabled = settings.startup["glowing_trees_aura"].value
 local glow_leaves_chance = glow_chance_percents[settings.startup["glowing_leaves_chance"].value]
 local glow_aura_haze_chance = glow_chance_percents[settings.startup["glow_aura_haze_chance"].value]
 local glow_aura_light_chance = glow_chance_percents[settings.startup["glow_aura_light_chance"].value]
@@ -63,21 +61,6 @@ local function get_repeat_count(animation)
     end
 end
 
-local function draw_as_light_recursive(animation)
-    if not animation.layers then
-        if not (animation.draw_as_shadow or animation.draw_as_light or animation.draw_as_glow) then
-            animation.draw_as_light = true
-        end
-        if animation.hr_version then
-            animation.hr_version.draw_as_light = true
-        end
-    else
-        for _, layer in pairs(animation.layers) do
-            draw_as_light_recursive(layer)
-        end
-    end
-end
-
 local function draw_as_glow_recursive(animation)
     if not animation.layers then
         if not (animation.draw_as_shadow or animation.draw_as_light or animation.draw_as_glow) then
@@ -89,21 +72,6 @@ local function draw_as_glow_recursive(animation)
     else
         for _, layer in pairs(animation.layers) do
             draw_as_glow_recursive(layer)
-        end
-    end
-end
-
-local function draw_as_shadow_recursive(animation)
-    if not animation.layers then
-        if not (animation.draw_as_shadow or animation.draw_as_light or animation.draw_as_glow) then
-            animation.draw_as_shadow = true
-            if animation.hr_version then
-                animation.hr_version.draw_as_shadow = true
-            end
-        end
-    else
-        for _, layer in pairs(animation.layers) do
-            draw_as_shadow_recursive(layer)
         end
     end
 end
