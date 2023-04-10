@@ -104,6 +104,14 @@ local function average_position(positions)
     }
 end
 
+local function average_tree_color_index(trees)
+    local color_index = 0
+    for _, tree in pairs(trees) do
+        color_index = color_index + tree.tree_color_index
+    end
+    return math.floor(color_index / #trees)
+end
+
 local function get_surrounding_quad_positions(position)
     local floor = math.floor
     local step_length = 16
@@ -452,30 +460,31 @@ end
 local function on_nth_tick(event)
 
     local time_to_live = 60 * 20
-    local draw_rectangles = true
+    local draw_rectangles = false
     global.quads_with_lights_by_uuid = global.quads_with_lights_by_uuid or {}
     local quads_with_lights_by_uuid = global.quads_with_lights_by_uuid
     global.quads_with_no_trees_by_uuid = global.quads_with_no_trees_by_uuid or {}
     local quads_with_no_trees_by_uuid = global.quads_with_no_trees_by_uuid
-    global.quad_positions = global.quad_positions or {}
-    local quad_positions = global.quad_positions
+    -- global.quad_positions = global.quad_positions or {}
+    -- local quad_positions = global.quad_positions
 
     local insert = table.insert
     local random = math.random
     -- local concat = table.concat
     local format = string.format
+    local floor = math.floor
     -- local bxor = bit32.bxor
     -- local lshift = bit32.lshift
 
-    -- for uuid, data in pairs(quads_with_lights_by_uuid) do
+    for uuid, data in pairs(quads_with_lights_by_uuid) do
         -- local expire_tick = data.expire_tick
         -- if expire_tick <= event.tick then
-    global.from_key = table.for_n_of(quads_with_lights_by_uuid, global.from_key, 170, function(data, uuid)
+    -- global.from_key = table.for_n_of(quads_with_lights_by_uuid, global.from_key, 170, function(data, uuid)
         if data.expire_tick <= event.tick then
-            -- global.quads_with_lights_by_uuid[uuid] = nil
-            return nil, true
+            global.quads_with_lights_by_uuid[uuid] = nil
+            -- return nil, true
         end
-    end)
+    end
 
     for _, player in pairs(game.connected_players) do
         local surface = player.surface
@@ -484,10 +493,10 @@ local function on_nth_tick(event)
         local player_position = player.position
         local player_surface_key = player_index .. "_" .. surface_index
         local scale_and_intensity = light_scale_and_intensity[player.mod_settings["glow_aura_scale"].value]
-        quad_positions = global.quad_positions[player_index] or get_surrounding_quad_positions(player_position)
-        if not global.from_keys then global.from_keys = {} end
-        global.from_keys[player_index] = table.for_n_of(quad_positions, global.from_keys[player_index], 88, function(quad_position)
-            -- for _, quad_position in pairs(n_of_quad_positions) do
+        local quad_positions = get_surrounding_quad_positions(player_position)
+        -- if not global.from_keys then global.from_keys = {} end
+        -- global.from_keys[player_index] = table.for_n_of(quad_positions, global.from_keys[player_index], 88, function(quad_position)
+            for _, quad_position in pairs(quad_positions) do
                 local quad_uuid = format("%s, %d, %d", player_surface_key, quad_position.x, quad_position.y)
                 -- local quad_uuid = unique_id(quad_position, player_surface_key, format)
                 -- local quad_uuid = unique_id(quad_position, surface_index, player_index, bxor, lshift)
@@ -500,7 +509,7 @@ local function on_nth_tick(event)
                         target = quad_position,
                         target_offset = {0, -1},
                         color = {r = 1, g = 0, b = 0, a = 1},
-                        time_to_live = 5,
+                        time_to_live = 30,
                         scale = 3,
                     }
                 end
@@ -560,7 +569,8 @@ local function on_nth_tick(event)
                                 sprite = "utility/light_medium",
                                 scale = scale_and_intensity.scale,
                                 intensity = scale_and_intensity.intensity + number_of_trees / 1000,
-                                color = rainbow_color(number_of_trees * 4),
+                                -- color = rainbow_color(number_of_trees * 4),
+                                color = rainbow_color(average_tree_color_index(trees) * 8),
                                 target = average_tree_position,
                                 surface = surface,
                                 time_to_live = modified_time_to_live,
@@ -572,7 +582,7 @@ local function on_nth_tick(event)
                             }
                         else
                             quads_with_no_trees_by_uuid[quad_uuid] = {
-                                expire_tick = event.tick + (time_to_live + random(-120, 120)) * 2,
+                                expire_tick = event.tick + floor((time_to_live + random(-120, 120)) * 1.5),
                             }
                             if draw_rectangles then
                                 rendering.draw_rectangle{
@@ -588,7 +598,7 @@ local function on_nth_tick(event)
                     end
                 end
             -- end
-        end)
+        end
     end
 end
 
@@ -597,6 +607,6 @@ local function mod_settings_changed(event)
     global.quads_with_lights_by_uuid = {}
 end
 
-script.on_nth_tick(10, on_nth_tick)
+script.on_nth_tick(20, on_nth_tick)
 
 script.on_event(defines.events.on_runtime_mod_setting_changed, mod_settings_changed)
