@@ -42,18 +42,18 @@ end
 --     return surface_name .. " " .. x .. " " .. y
 -- end
 
-local function unique_id(position, surface_index, concat, temp_table)
-    temp_table = {}
-    temp_table[1] = position.x
-    temp_table[2] = position.y
-    temp_table[3] = surface_index
-    local uuid = concat(temp_table, ", ")
-    return uuid
-end
--- local function unique_id(position, surface_index, format)
---     local uuid = format("%d, %d, %d", position.x, position.y, surface_index)
+-- local function unique_id(position, surface_index, concat, temp_table)
+--     temp_table = {}
+--     temp_table[1] = position.x
+--     temp_table[2] = position.y
+--     temp_table[3] = surface_index
+--     local uuid = concat(temp_table, ", ")
 --     return uuid
 -- end
+local function unique_id(position, surface_index, format)
+    local uuid = format("%d, %d, %d", position.x, position.y, surface_index)
+    return uuid
+end
 
 ---@param positions MapPosition[]
 ---@return MapPosition
@@ -417,34 +417,35 @@ end
 ---@param event NthTickEventData
 local function on_nth_tick(event)
 
-    local time_to_live = 60 * 30
+    local time_to_live = 60 * 20
     local draw_rectangles = false
     global.quads_with_lights_by_uuid = global.quads_with_lights_by_uuid or {}
     local quads_with_lights_by_uuid = global.quads_with_lights_by_uuid
     global.quads_with_no_trees_by_uuid = global.quads_with_no_trees_by_uuid or {}
     local quads_with_no_trees_by_uuid = global.quads_with_no_trees_by_uuid
 
-    local floor = math.floor
     local insert = table.insert
     local random = math.random
-    local concat = table.concat
+    -- local concat = table.concat
     local format = string.format
 
     for uuid, data in pairs(quads_with_lights_by_uuid) do
-        local expire_tick = data.expire_tick
-        if expire_tick <= event.tick then
+        -- local expire_tick = data.expire_tick
+        -- if expire_tick <= event.tick then
+        if data.expire_tick <= event.tick then
             global.quads_with_lights_by_uuid[uuid] = nil
         end
     end
 
     for _, player in pairs(game.connected_players) do
         local surface = player.surface
+        local surface_index = surface.index
         local player_position = player.position
         local scale_and_intensity = light_scale_and_intensity[player.mod_settings["glow_aura_scale"].value]
         local quad_positions = get_surrounding_quad_positions(player_position)
         for _, quad_position in pairs(quad_positions) do
-            -- local quad_uuid = unique_id(quad_position, surface.index, format)
-            local quad_uuid = unique_id(quad_position, surface.index, concat)
+            local quad_uuid = unique_id(quad_position, surface_index, format)
+            -- local quad_uuid = unique_id(quad_position, surface.index, concat)
             if quads_with_lights_by_uuid[quad_uuid] then
                 if quads_with_lights_by_uuid[quad_uuid].expire_tick < event.tick + 30 then
                     local light = quads_with_lights_by_uuid[quad_uuid].light
@@ -471,7 +472,8 @@ local function on_nth_tick(event)
                     end
                 end
             else
-                if not quads_with_no_trees_by_uuid[quad_uuid] or (quads_with_no_trees_by_uuid[quad_uuid].expire_tick < event.tick) then
+                local quad_with_no_trees = quads_with_no_trees_by_uuid[quad_uuid]
+                if not quad_with_no_trees or (quad_with_no_trees.expire_tick < event.tick) then
                     -- if not area then area = get_area_of_quad(quad_position) end
                     local area = get_area_of_quad(quad_position)
                     local trees = surface.find_entities_filtered{
@@ -536,6 +538,6 @@ local function mod_settings_changed(event)
     global.quads_with_lights_by_uuid = {}
 end
 
-script.on_nth_tick(5, on_nth_tick)
+script.on_nth_tick(30, on_nth_tick)
 
 script.on_event(defines.events.on_runtime_mod_setting_changed, mod_settings_changed)
