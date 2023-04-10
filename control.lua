@@ -149,14 +149,33 @@ end
 --     return uniqueId
 -- end
 
----@param position MapPosition
----@param surface_name string
----@return string
-local function unique_id(position, surface_name)
-    local x = position.x
-    local y = position.y
-    return tostring(surface_name) .. " " .. tostring(x) .. " " .. tostring(y)
+-- ---@param position MapPosition
+-- ---@param surface_name string
+-- ---@return string
+-- local function unique_id(position, surface_name)
+--     local x = position.x
+--     local y = position.y
+--     return surface_name .. " " .. x .. " " .. y
+-- end
+
+local function unique_id(position, surface_index)
+    local temp_table = {position.x, position.y, surface_index}
+    local uuid = table.concat(temp_table, ", ")
+    return uuid
 end
+
+-- ---@param position MapPosition
+-- ---@param surface_index uint
+-- ---@return integer
+-- local function unique_id(position, surface_index)
+--     local x = math.floor(position.x)
+--     local y = math.floor(position.y)
+--     -- local hash1 = bit32.band(x,y)
+--     -- local hash2 = bit32.band(hash1, surface_index)
+
+--     local hash = bit32.bor(bit32.lshift(surface_index, 20), bit32.lshift(x, 10), y)
+--     return hash
+-- end
 
 local function distance(position1, position2)
     local x = position1.x - position2.x
@@ -189,46 +208,50 @@ local function chunk_to_map_position(chunk_position)
 end
 
 local function divide_chunk_into_quads(chunk_position)
-    local quad_positions = {}
+
     local x = chunk_position.x * 32
     local y = chunk_position.y * 32
-    table.insert(quad_positions, {x = x, y = y})
-    table.insert(quad_positions, {x = x + 16, y = y})
-    table.insert(quad_positions, {x = x, y = y + 16})
-    table.insert(quad_positions, {x = x + 16, y = y + 16})
+    local quad_positions = {
+        {x = x, y = y},
+        {x = x + 16, y = y},
+        {x = x, y = y + 16},
+        {x = x + 16, y = y + 16},
+    }
+    -- table.insert(quad_positions, {x = x, y = y})
+    -- table.insert(quad_positions, {x = x + 16, y = y})
+    -- table.insert(quad_positions, {x = x, y = y + 16})
+    -- table.insert(quad_positions, {x = x + 16, y = y + 16})
     return quad_positions
 end
 
+local function get_surrounding_quad_positions(position, steps)
+    local quads = {}
+    for x = -steps, steps, 16 do
+        for y = -steps, steps, 16 do
+            table.insert(quads, {
+                x = position.x + x,
+                y = position.y + y,
+            })
+        end
+    end
+    return quads
+end
+
 local function get_area_of_quad(quad_position)
-    return {
+    local area = {
         left_top = quad_position,
         right_bottom = {
             x = quad_position.x + 16,
             y = quad_position.y + 16,
-        },
+        }
     }
+    return area
 end
 
----spawn a flying text in every chunk within a radius of 4 chunks from the player
 ---@param event NthTickEventData
 local function on_nth_tick(event)
 
-    local time_to_live = 60 * 60
-    -- local leaves_chance = glow_chance_percents[settings.startup["glowing_leaves_chance"].value]
-    -- local aura_haze_chance = glow_chance_percents[settings.startup["glow_aura_haze_chance"].value]
-    -- local aura_light_chance = glow_chance_percents[settings.startup["glow_aura_light_chance"].value]
-    local aura_haze_chance = 1 / time_to_live
-    -- local aura_light_chance = 1 / time_to_live
-    local aura_light_chance = 1 / 100
-    -- local glow_scale = glow_scales[settings.startup["glow_aura_scale"].value]
-    local glow_scale = 5
-
-    -- global.lights = global.lights or {}
-    -- local lights = global.lights
-    -- global.trees_with_lights_by_uuid = global.trees_with_lights_by_uuid or {}
-    -- local trees_with_lights_by_uuid = global.trees_with_lights_by_uuid
-    -- global.chunks_with_lights_by_uuid = global.chunks_with_lights_by_uuid or {}
-    -- local chunks_with_lights_by_uuid = global.chunks_with_lights_by_uuid
+    local time_to_live = 60 * 15
     global.quads_with_lights_by_uuid = global.quads_with_lights_by_uuid or {}
     local quads_with_lights_by_uuid = global.quads_with_lights_by_uuid
     global.quads_with_no_trees_by_uuid = global.quads_with_no_trees_by_uuid or {}
@@ -244,15 +267,19 @@ local function on_nth_tick(event)
     for _, player in pairs(game.connected_players) do
         local surface = player.surface
         local player_position = player.position
-        local force = player.force
         local scale_and_intensity = light_scale_and_intensity[player.mod_settings["glow_aura_scale"].value]
         local chunk_positions = get_surrounding_chunk_positions(player_position, 4)
         for _, chunk_position in pairs(chunk_positions) do
             for _, quad_position in pairs(divide_chunk_into_quads(chunk_position)) do
-                local quad_uuid = unique_id(quad_position, surface.name)
-                local area = get_area_of_quad(quad_position)
+                local quad_uuid = unique_id(quad_position, surface.index)
+                -- local quad_uuid = toHex(surface.index, quad_position.x, quad_position.y)
+                -- local area = get_area_of_quad(quad_position)
 
-                local draw_rectangles = true
+                local draw_rectangles = false
+                local area = nil
+                if draw_rectangles then
+                    area = get_area_of_quad(quad_position)
+                end
 
                 if quads_with_lights_by_uuid[quad_uuid] then
                     if quads_with_lights_by_uuid[quad_uuid].expire_tick < event.tick + 30 then
@@ -279,6 +306,7 @@ local function on_nth_tick(event)
                     end
                 else
                     if not quads_with_no_trees_by_uuid[quad_uuid] or (quads_with_no_trees_by_uuid[quad_uuid].expire_tick < event.tick) then
+                        if not area then area = get_area_of_quad(quad_position) end
                         local trees = surface.find_entities_filtered{
                             area = area,
                             type = "tree",
@@ -300,29 +328,24 @@ local function on_nth_tick(event)
                                 table.insert(tree_positions, tree.position)
                             end
                             local average_tree_position = average_position(tree_positions)
+                            local modified_time_to_live = time_to_live + math.random(1, 3)
                             local light = rendering.draw_light{
                                 sprite = "utility/light_medium",
-                                -- scale = glow_scale,
-                                -- scale = 5,
                                 scale = scale_and_intensity.scale,
-                                -- scale = #trees / 10,
-                                -- intensity = 0.1 + number_of_trees / 500,
                                 intensity = scale_and_intensity.intensity + number_of_trees / 1000,
-                                -- intensity = #trees / 75,
-                                -- minimum_darkness = 0.3,
                                 color = rainbow_color(number_of_trees * 4),
                                 target = average_tree_position,
                                 surface = surface,
-                                time_to_live = time_to_live,
+                                time_to_live = modified_time_to_live,
                                 players = {player},
                             }
                             quads_with_lights_by_uuid[quad_uuid] = {
-                                expire_tick = event.tick + time_to_live,
+                                expire_tick = event.tick + modified_time_to_live,
                                 light = light,
                             }
                         else
                             quads_with_no_trees_by_uuid[quad_uuid] = {
-                                expire_tick = event.tick + time_to_live * 2,
+                                expire_tick = event.tick + (time_to_live + math.random(1, 3)) * 2,
                             }
                             if draw_rectangles then
                                 rendering.draw_rectangle{
@@ -338,99 +361,6 @@ local function on_nth_tick(event)
                     end
                 end
             end
-            -- if not chunks_with_lights_by_uuid[chunk_uuid] then
-            --     -- local area = get_area_of_chunk(get_chunk_position(chunk_position))
-            --     local trees = surface.find_entities_filtered{
-            --         area = area,
-            --         type = "tree",
-            --     }
-            --     if #trees > 0 then
-            --         local tree_positions = {}
-            --         for _, tree in pairs(trees) do
-            --             table.insert(tree_positions, tree.position)
-            --         end
-            --         local average_tree_position = average_position(tree_positions)
-            --         local light = rendering.draw_light{
-            --             sprite = "utility/light_medium",
-            --             scale = glow_scale,
-            --             -- scale = #trees / 10,
-            --             intensity = 0.5,
-            --             -- minimum_darkness = 0.3,
-            --             color = rainbow_color(event.tick, chunk_uuid),
-            --             target = average_tree_position,
-            --             surface = surface,
-            --             time_to_live = time_to_live,
-            --             forces = {force},
-            --         }
-            --         global.chunks_with_lights_by_uuid[chunk_uuid] = {
-            --             expire_tick = event.tick + time_to_live,
-            --             position = average_tree_position,
-            --             light = light,
-            --         }
-            --     end
-            -- end
-            -- local random = math.random()
-            -- if aura_light_chance >= random then
-            --     local area = get_area_of_chunk(get_chunk_position(chunk_position))
-            --     local trees = surface.find_entities_filtered{
-            --         area = area,
-            --         type = "tree",
-            --     }
-            --     for _, tree in pairs(trees) do
-            --         random = math.random()
-            --         if aura_light_chance >= random then goto continue end
-            --         -- local lights = global.lights or {}
-            --         -- global.render_queue = global.render_queue or {}
-            --         local tree_position = tree.position
-            --         -- local trees_with_lights_by_uuid = global.trees_with_lights_by_uuid or {}
-            --         local uuid = unique_id(tree_position)
-            --         -- if trees_with_lights_by_uuid[uuid] then goto continue end
-            --         local tree_has_light = trees_with_lights_by_uuid[uuid]
-            --         local distance_check = true
-            --         rendering.draw_text{
-            --             text = "•",
-            --             surface = tree.surface,
-            --             target = tree,
-            --             forces = {force},
-            --             scale = 1,
-            --             -- render_layer = "decorative",
-            --             color = {r = 1, g = 1, b = 1, a = 1},
-            --             time_to_live = 5,
-            --         }
-            --         for id, data in pairs(lights) do
-            --             if tree_has_light or (not data.position) or (distance(tree_position, data.position) < 15) then
-            --                 distance_check = false
-            --                 if data.expire_tick < game.tick then
-            --                     global.lights[id] = nil
-            --                     global.trees_with_lights_by_uuid[uuid] = nil
-            --                 end
-            --             end
-            --         end
-            --         if not distance_check then goto continue end
-            --         local light = rendering.draw_light{
-            --             -- sprite = "tree_glow",
-            --             sprite = "utility/light_medium",
-            --             target = tree,
-            --             surface = tree.surface,
-            --             forces = {force},
-            --             scale = glow_scale,
-            --             render_layer = "decorative",
-            --             -- color = {r = .1, g = .1, b = .1, a = 0.25},
-            --             -- color = rainbow_color(game.tick, unique_id(tree.position)),
-            --             color = rainbow_color(game.tick, tree.tree_color_index),
-            --             time_to_live = time_to_live,
-            --             intensity = 1 / 5,
-            --         }
-            --         -- global.lights = global.lights or {}
-            --         global.lights[light] = {
-            --             surface = tree.surface.name,
-            --             position = tree_position,
-            --             expire_tick = game.tick + time_to_live,
-            --         }
-            --         global.trees_with_lights_by_uuid[uuid] = true
-            --         ::continue::
-            --     end
-            -- end
         end
     end
 end
