@@ -494,14 +494,8 @@ local function on_nth_tick(event)
         local player_surface_key = player_index .. "_" .. surface_index
         local scale_and_intensity = light_scale_and_intensity[player.mod_settings["glow_aura_scale"].value]
         local quad_positions = get_surrounding_quad_positions(player_position)
-        -- if not global.from_keys then global.from_keys = {} end
-        -- global.from_keys[player_index] = table.for_n_of(quad_positions, global.from_keys[player_index], 88, function(quad_position)
             for _, quad_position in pairs(quad_positions) do
                 local quad_uuid = format("%s, %d, %d", player_surface_key, quad_position.x, quad_position.y)
-                -- local quad_uuid = unique_id(quad_position, player_surface_key, format)
-                -- local quad_uuid = unique_id(quad_position, surface_index, player_index, bxor, lshift)
-                -- local quad_uuid = unique_id(quad_position, surface_index, format)
-                -- local quad_uuid = unique_id(quad_position, surface.index, concat)
                 if draw_rectangles then
                     rendering.draw_text{
                         text = quad_uuid,
@@ -541,7 +535,6 @@ local function on_nth_tick(event)
                 else
                     local quad_with_no_trees = quads_with_no_trees_by_uuid[quad_uuid]
                     if not quad_with_no_trees or (quad_with_no_trees.expire_tick < event.tick) then
-                        -- if not area then area = get_area_of_quad(quad_position) end
                         local area = get_area_of_quad(quad_position)
                         local trees = surface.find_entities_filtered{
                             area = area,
