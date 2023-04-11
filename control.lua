@@ -484,6 +484,13 @@ local function on_nth_tick(event)
             global.quads_with_lights_by_uuid[uuid] = nil
             -- return nil, true
         end
+    --     -- local expire_tick = data.expire_tick
+    --     -- if expire_tick <= event.tick then
+    -- -- global.from_key = table.for_n_of(quads_with_lights_by_uuid, global.from_key, 170, function(data, uuid)
+    --     if data.expire_tick <= event.tick then
+    --         global.quads_with_lights_by_uuid[uuid] = nil
+    --         -- return nil, true
+    --     end
     end
 
     for _, player in pairs(game.connected_players) do
@@ -532,65 +539,44 @@ local function on_nth_tick(event)
                             }
                         end
                     end
-                else
-                    local quad_with_no_trees = quads_with_no_trees_by_uuid[quad_uuid]
-                    if not quad_with_no_trees or (quad_with_no_trees.expire_tick < event.tick) then
-                        local area = get_area_of_quad(quad_position)
-                        local trees = surface.find_entities_filtered{
-                            area = area,
-                            type = "tree",
+                        local tree_positions = {}
+                        for _, tree in pairs(trees) do
+                            insert(tree_positions, tree.position)
+                        end
+                        local average_tree_position = average_position(tree_positions)
+                        local modified_time_to_live = time_to_live + random(-120, 120)
+                        local light = rendering.draw_light{
+                            sprite = "utility/light_medium",
+                            scale = scale_and_intensity.scale,
+                            intensity = scale_and_intensity.intensity + number_of_trees / 1000,
+                            -- color = rainbow_color(number_of_trees * 4),
+                            color = rainbow_color(average_tree_color_index(trees) * 8),
+                            target = average_tree_position,
+                            surface = surface,
+                            time_to_live = modified_time_to_live,
+                            players = {player},
                         }
-                        local number_of_trees = #trees
-                        if number_of_trees > 0 then
-                            if draw_rectangles then
-                                rendering.draw_rectangle{
-                                    color = {r = 1, g = 1, b = 1, a = 1},
-                                    filled = false,
-                                    left_top = area.left_top,
-                                    right_bottom = area.right_bottom,
-                                    surface = surface,
-                                    time_to_live = 60,
-                                }
-                            end
-                            local tree_positions = {}
-                            for _, tree in pairs(trees) do
-                                insert(tree_positions, tree.position)
-                            end
-                            local average_tree_position = average_position(tree_positions)
-                            local modified_time_to_live = time_to_live + random(-120, 120)
-                            local light = rendering.draw_light{
-                                sprite = "utility/light_medium",
-                                scale = scale_and_intensity.scale,
-                                intensity = scale_and_intensity.intensity + number_of_trees / 1000,
-                                -- color = rainbow_color(number_of_trees * 4),
-                                color = rainbow_color(average_tree_color_index(trees) * 8),
-                                target = average_tree_position,
+                        quads_with_lights_by_uuid[quad_uuid] = {
+                            expire_tick = event.tick + modified_time_to_live,
+                            light = light,
+                        }
+                    else
+                        quads_with_no_trees_by_uuid[quad_uuid] = {
+                            expire_tick = event.tick + floor((time_to_live + random(-120, 120)) * 1.5),
+                        }
+                        if draw_rectangles then
+                            rendering.draw_rectangle{
+                                color = {r = 0, g = 1, b = 0, a = 1},
+                                filled = false,
+                                left_top = area.left_top,
+                                right_bottom = area.right_bottom,
                                 surface = surface,
-                                time_to_live = modified_time_to_live,
-                                players = {player},
+                                time_to_live = 60,
                             }
-                            quads_with_lights_by_uuid[quad_uuid] = {
-                                expire_tick = event.tick + modified_time_to_live,
-                                light = light,
-                            }
-                        else
-                            quads_with_no_trees_by_uuid[quad_uuid] = {
-                                expire_tick = event.tick + floor((time_to_live + random(-120, 120)) * 1.5),
-                            }
-                            if draw_rectangles then
-                                rendering.draw_rectangle{
-                                    color = {r = 0, g = 1, b = 0, a = 1},
-                                    filled = false,
-                                    left_top = area.left_top,
-                                    right_bottom = area.right_bottom,
-                                    surface = surface,
-                                    time_to_live = 60,
-                                }
-                            end
                         end
                     end
                 end
-            -- end
+            end
         end
     end
 end
