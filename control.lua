@@ -37,6 +37,13 @@ local function rainbow_color(anchor)
     return {r = r, g = g, b = b, a = 0.5}
 end
 
+local function temperature_color(temperature)
+    local r = math.sin(temperature / 10000 + 0) * 127 + 128
+    local g = math.sin(temperature / 10000 + 2) * 127 + 128
+    local b = math.sin(temperature / 10000 + 4) * 127 + 128
+    return {r = r, g = g, b = b, a = 0.5}
+end
+
 local function unique_id(position, player_surface_key, format)
     return format("%d, %d, %d", player_surface_key, position.x, position.y)
 end
@@ -462,10 +469,10 @@ end
 
 ---@param event NthTickEventData
 local function on_nth_tick(event)
-    local time_to_live = 60 * 10
-    local step_length = 8 * 3
+    local time_to_live = 60 * 20
+    local step_length = 8 * 4
     local steps = 128 / step_length
-    local draw_rectangles = true
+    local draw_rectangles = false
     -- global.quads_with_lights = global.quads_with_lights or {}
     -- local quads_with_lights = global.quads_with_lights
     -- global.quads_with_no_trees = global.quads_with_no_trees or {}
@@ -591,25 +598,34 @@ local function on_nth_tick(event)
                     type = "tree",
                 }
                 local number_of_trees = #trees
+                -- local number_of_trees = surface.count_entities_filtered{
+                --     position = get_middle_of_quad(quad_position, step_length),
+                --     radius = step_length * 0.55,
+                --     type = "tree",
+                -- }
                 if number_of_trees > 0 then
-                    local tree_positions = {}
-                    for _, tree in pairs(trees) do
-                        insert(tree_positions, tree.position)
-                    end
-                    local average_tree_position = average_position(tree_positions)
+                    -- local tree_positions = {}
+                    -- for _, tree in pairs(trees) do
+                    --     insert(tree_positions, tree.position)
+                    -- end
+                    -- local average_tree_position = average_position(tree_positions)
+                    local average_tree_position = get_middle_of_quad(quad_position, step_length)
                     local modified_time_to_live = time_to_live + random(1, 120)
                     -- local anchor = (x ^ 2 + y ^ 2) * 0.0001
-                    local anchor = surface.calculate_tile_properties({"temperature"}, {average_tree_position})["temperature"][1] / 100
+                    local anchor = surface.calculate_tile_properties({"temperature"}, {average_tree_position})["temperature"][1] / 1
                     local light = rendering.draw_light{
                         sprite = "utility/light_medium",
                         scale = scale_and_intensity.scale,
                         -- intensity = scale_and_intensity.intensity + number_of_trees / (1024 / step_length),
-                        intensity = scale_and_intensity.intensity * 10,
-                        -- color = rainbow_color(number_of_trees / (1024 / step_length)),
+                        intensity = scale_and_intensity.intensity + number_of_trees / 50,
+                        -- color = rainbow_color((number_of_trees / (1024 / step_length)) / 1000),
                         -- color = rainbow_color(average_tree_color_index(trees) * 8),
                         -- color = rainbow_color(average_tree_stage_index(trees) * 8),
-                        -- color = rainbow_color(sin(x) + cos(y)),
-                        color = rainbow_color(anchor),
+                        -- color = rainbow_color((sin(x * 0.25) + cos(y * 0.25))),
+                        color = rainbow_color(number_of_trees / 50),
+                        -- color = rainbow_color((x + y) * 0.25),
+                        -- color = rainbow_color(anchor),
+                        -- color = temperature_color(anchor),
                         target = average_tree_position,
                         surface = surface,
                         time_to_live = modified_time_to_live,
@@ -629,6 +645,7 @@ local function on_nth_tick(event)
                     if draw_rectangles then
                         draw_rectangle(surface, area, {r = 1, g = 1, b = 1, a = 1})
                         draw_text(surface, average_tree_position, number_of_trees, {r = 1, g = 1, b = 1, a = 1}, 10)
+                        -- draw_text(surface, average_tree_position, floor(anchor), {r = 1, g = 1, b = 1, a = 1}, 10)
                         -- player.print("new light drawn")
                     end
                 else
@@ -647,9 +664,6 @@ local function on_nth_tick(event)
                     end
                 end
             end
-            quad_has_existing_light = false
-            quad_has_no_trees = false
-            quad_data = nil
         end
     end
 end
