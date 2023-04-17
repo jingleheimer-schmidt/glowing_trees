@@ -467,16 +467,16 @@ local function average_tree_stage_index(trees)
     return tree_stage_index / #trees
 end
 
+local function normalize_value(value, min, max)
+    return (value - min) / (max - min)
+end
+
 ---@param event NthTickEventData
 local function on_nth_tick(event)
     local time_to_live = 60 * 20
     local step_length = 8 * 4
     local steps = 128 / step_length
     local draw_rectangles = false
-    -- global.quads_with_lights = global.quads_with_lights or {}
-    -- local quads_with_lights = global.quads_with_lights
-    -- global.quads_with_no_trees = global.quads_with_no_trees or {}
-    -- local quads_with_no_trees = global.quads_with_no_trees
     global.quads_with_lights_by_uuid = global.quads_with_lights_by_uuid or {}
     local quads_with_lights_by_uuid = global.quads_with_lights_by_uuid
     global.quads_with_no_trees_by_uuid = global.quads_with_no_trees_by_uuid or {}
@@ -487,16 +487,6 @@ local function on_nth_tick(event)
     local floor = math.floor
     local sin = math.sin
     local cos = math.cos
-    -- for player_surface_key, player_surface_data in pairs(quads_with_lights) do
-    --     for x, x_data in pairs(player_surface_data) do
-    --         for y, data in pairs(x_data) do
-    --             local expire_tick = data.expire_tick
-    --             if expire_tick <= event.tick then
-    --                 quads_with_lights[player_surface_key][x][y] = nil
-    --             end
-    --         end
-    --     end
-    -- end
     for uuid, quad_data in pairs(quads_with_lights_by_uuid) do
         local expire_tick = quad_data.expire_tick
         if expire_tick <= event.tick then
@@ -521,66 +511,27 @@ local function on_nth_tick(event)
         for _, quad_position in pairs(quad_positions) do
             local quad_uuid = format("%s, %d, %d", player_surface_key, quad_position.x, quad_position.y)
             if draw_rectangles then
-                -- local quad_uuid = format("%s, %d, %d", player_surface_key, quad_position.x, quad_position.y)
                 draw_text(surface, quad_position, quad_uuid, {r = 1, g = 0, b = 0, a = 1}, 3)
-                -- rendering.draw_text{
-                --     text = quad_uuid,
-                --     surface = surface,
-                --     target = quad_position,
-                --     target_offset = {0, -1},
-                --     color = {r = 1, g = 0, b = 0, a = 1},
-                --     time_to_live = 30,
-                --     scale = 3,
-                -- }
             end
             local x = quad_position.x
             local y = quad_position.y
             local quad_has_existing_light = false
             local quad_has_no_trees = false
             local quad_data = nil
-            -- if quads_with_lights and quads_with_lights[player_surface_key] then
-            --     local quads_with_lights_player_surface_data = quads_with_lights[player_surface_key]
-            --     if quads_with_lights_player_surface_data[x] then
-            --         local quads_with_lights_x_data = quads_with_lights_player_surface_data[x]
-            --         if quads_with_lights_x_data[y] then
-            --             quad_has_existing_light = true
-            --             quad_data = quads_with_lights_x_data[y]
-            --         end
-            --     end
-            -- end
             if quads_with_lights_by_uuid and quads_with_lights_by_uuid[quad_uuid] then
-                -- local quad_with_lights = quads_with_lights_by_uuid[quad_uuid]
-                -- if quad_with_lights.expire_tick < event.tick then
-                    quad_has_existing_light = true
-                    quad_data = quads_with_lights_by_uuid[quad_uuid]
-                -- end
+                quad_has_existing_light = true
+                quad_data = quads_with_lights_by_uuid[quad_uuid]
             end
-            -- if quads_with_no_trees and quads_with_no_trees[player_surface_key] then
-            --     local quads_with_no_trees_player_surface_data = quads_with_no_trees[player_surface_key]
-            --     if quads_with_no_trees_player_surface_data[x] then
-            --         local quads_with_no_trees_x_data = quads_with_no_trees_player_surface_data[x]
-            --         if quads_with_no_trees_x_data[y] then
-            --             quad_has_no_trees = true
-            --             quad_data = quads_with_no_trees_x_data[y]
-            --         end
-            --     end
-            -- end
             if quads_with_no_trees_by_uuid and quads_with_no_trees_by_uuid[quad_uuid] then
-                -- local quad_with_no_trees = quads_with_no_trees_by_uuid[quad_uuid]
-                -- if quad_with_no_trees.expire_tick < event.tick then
-                    quad_has_no_trees = true
-                    quad_data = quads_with_no_trees_by_uuid[quad_uuid]
-                -- end
+                quad_has_no_trees = true
+                quad_data = quads_with_no_trees_by_uuid[quad_uuid]
             end
             local quad_is_new = not quad_has_existing_light and not quad_has_no_trees
             local quad_with_light_needs_update = quad_has_existing_light and (quad_data.expire_tick < event.tick + 60)
             local quad_with_no_trees_needs_update = quad_has_no_trees and (quad_data.expire_tick < event.tick + 60)
-            -- if quad_has_existing_light and quad_has_no_trees then game.print("both are true D:") end
-            -- if quad_has_existing_light and quad_data then
             if quad_with_light_needs_update then
                 if quad_data.expire_tick < event.tick + 60 then
                     local modified_time_to_live = time_to_live + random(1, 120)
-                    -- if not (quad_data.light and rendering.is_valid(quad_data.light)) then return end
                     rendering.set_time_to_live(quad_data.light, modified_time_to_live)
                     quads_with_no_trees_by_uuid[quad_uuid] = nil
                     quads_with_lights_by_uuid[quad_uuid].expire_tick = event.tick + modified_time_to_live
@@ -588,10 +539,7 @@ local function on_nth_tick(event)
                         draw_rectangle(surface, get_area_of_quad(quad_position, step_length), {r = 0, g = 0, b = 1, a = 1})
                     end
                 end
-            -- elseif (quad_has_no_trees and (quad_data and (quad_data.expire_tick < event.tick + 60))) or quad_is_new then
             elseif quad_with_no_trees_needs_update or quad_is_new then
-            -- elseif (quad_has_no_trees and quad_data) or not (quad_has_existing_light and quad_has_no_trees) then
-            -- elseif quad_has_no_trees and quad_data then
                 local area = get_area_of_quad(quad_position, step_length)
                 local trees = surface.find_entities_filtered{
                     area = area,
@@ -631,12 +579,6 @@ local function on_nth_tick(event)
                         time_to_live = modified_time_to_live,
                         players = {player},
                     }
-                    -- if not quads_with_lights[player_surface_key] then quads_with_lights[player_surface_key] = {} end
-                    -- if not quads_with_lights[player_surface_key][x] then quads_with_lights[player_surface_key][x] = {} end
-                    -- quads_with_lights[player_surface_key][x][y] = {
-                    --     expire_tick = event.tick + time_to_live,
-                    --     light = light,
-                    -- }
                     quads_with_no_trees_by_uuid[quad_uuid] = nil
                     quads_with_lights_by_uuid[quad_uuid] = {
                         expire_tick = event.tick + modified_time_to_live,
@@ -645,19 +587,11 @@ local function on_nth_tick(event)
                     if draw_rectangles then
                         draw_rectangle(surface, area, {r = 1, g = 1, b = 1, a = 1})
                         draw_text(surface, average_tree_position, number_of_trees, {r = 1, g = 1, b = 1, a = 1}, 10)
-                        -- draw_text(surface, average_tree_position, floor(anchor), {r = 1, g = 1, b = 1, a = 1}, 10)
-                        -- player.print("new light drawn")
                     end
                 else
-                    -- if not quads_with_no_trees[player_surface_key] then quads_with_no_trees[player_surface_key] = {} end
-                    -- if not quads_with_no_trees[player_surface_key][x] then quads_with_no_trees[player_surface_key][x] = {} end
-                    -- quads_with_no_trees[player_surface_key][x][y] = {
-                    --     expire_tick = event.tick + floor((time_to_live + random(-120, 120)) * 1.5),
-                    -- }
                     quads_with_lights_by_uuid[quad_uuid] = nil
                     quads_with_no_trees_by_uuid[quad_uuid] = {
                         expire_tick = event.tick + floor((time_to_live + random(1, 120)) * 1.5),
-                        -- expire_tick = event.tick + floor(time_to_live * 1.5),
                     }
                     if draw_rectangles then
                         draw_rectangle(surface, area, {r = 0, g = 1, b = 0, a = 1})
@@ -679,13 +613,3 @@ end
 script.on_nth_tick(10, on_nth_tick)
 
 script.on_event(defines.events.on_runtime_mod_setting_changed, mod_settings_changed)
-
--- script.on_event(defines.events.on_tick, function()
---     if not global.profiler then global.profiler = game.create_profiler() end
---     if not global.counter then global.counter = 0 end
---     global.counter = global.counter + 1
---     if global.counter == 60 * 60 then
---         log(global.profiler)
---         global.profiler.reset()
---     end
--- end)
