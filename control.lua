@@ -28,9 +28,9 @@ local light_scale_and_intensity = {
     ["Tiny"] = {scale = 5, intensity = 0.3},
     ["Small"] = {scale = 6, intensity = 0.25},
     ["Medium"] = {scale = 7, intensity = 0.2},
-    ["Large"] = {scale = 9, intensity = 0.15},
-    ["Huge"] = {scale = 11, intensity = 0.1},
-    ["Enormous"] = {scale = 15, intensity = 0.05},
+    ["Large"] = {scale = 9, intensity = 0.1},
+    ["Huge"] = {scale = 11, intensity = 0.001},
+    ["Enormous"] = {scale = 15, intensity = 0.0001},
 }
 
 local function rgba_to_hsva(r, g, b, a)
@@ -95,7 +95,7 @@ end
 local function normalize_color(color)
     local r, g, b, a, h, s, v = 0, 0, 0, 0, 0, 0, 0
     h, s, v, a = rgba_to_hsva(color.r, color.g, color.b, color.a)
-    r, g, b, a = hsva_to_rgba(h, 0.9, 0.4, 1)
+    r, g, b, a = hsva_to_rgba(h, 0.9, 0.15, 1)
     return { r = r, g = g, b = b, a = a }
 end
 
@@ -173,12 +173,24 @@ local function surrounding_biome_color(x, y, number_of_trees, frequency, surface
     return map_color
 end
 
+local function biome_plus_density(x, y, anchor, frequency, surface)
+    local biome = surrounding_biome_color(x, y, anchor, frequency, surface)
+    local density = rainbow_color(x, y, anchor, frequency, surface)
+    return {
+        r = (biome.r * 15 + density.r) / 16,
+        g = (biome.g * 15 + density.g) / 16,
+        b = (biome.b * 15 + density.b) / 16,
+        a = 255
+    }
+end
+
 local color_modes = {
     ["surrounding biome"] = surrounding_biome_color,
     ["tree density"] = rainbow_color,
     ["lissajous rainbow"] = lissajous_rainbow,
     ["diagonal rainbow stripes"] = diagonal_rainbow,
     ["horizontal rainbow stripes"] = horizonal_rainbow,
+    ["biome plus density"] = biome_plus_density,
     ["vertical rainbow stripes"] = vertical_rainbow,
 }
 
@@ -696,11 +708,6 @@ local function on_nth_tick(event)
                     type = "tree",
                 }
                 local number_of_trees = #trees
-                -- local number_of_trees = surface.count_entities_filtered{
-                --     position = get_middle_of_quad(quad_position, step_length),
-                --     radius = step_length * 0.55,
-                --     type = "tree",
-                -- }
                 if number_of_trees > 1 then
                     local quad_midpoint = get_middle_of_quad(quad_position, step_length)
                     local tree_positions = {}
@@ -710,10 +717,9 @@ local function on_nth_tick(event)
                     end
                     insert(tree_positions, quad_midpoint)
                     local average_tree_position = average_position(tree_positions)
-                    -- local average_tree_position = get_middle_of_quad(quad_position, step_length)
                     local modified_time_to_live = time_to_live + random(1, 120)
 
-                    local frequency = 0.025
+                    local frequency = 0.0125
                     local color = color_modes[color_mode](x, y, number_of_trees, frequency, surface)
 
                     color = normalize_color(color)
@@ -722,7 +728,8 @@ local function on_nth_tick(event)
                         sprite = "utility/light_medium",
                         scale = scale_and_intensity.scale,
                         intensity = (scale_and_intensity.intensity + (number_of_trees / 256 * steps)),
-                        -- intensity = scale_and_intensity.intensity + number_of_trees / 100,
+                        -- intensity = (scale_and_intensity.intensity + (number_of_trees / 512 * steps)),
+                        -- intensity = (scale_and_intensity.intensity + (number_of_trees / 1024 * steps)),
                         color = color,
                         target = average_tree_position,
                         surface = surface,
@@ -738,7 +745,7 @@ local function on_nth_tick(event)
                         draw_rectangle(surface, area, {r = 1, g = 1, b = 1, a = 1})
                         -- draw_text(surface, average_tree_position, number_of_trees, {r = 1, g = 1, b = 1, a = 1}, 10)
                         -- draw_text(surface, average_tree_position, floor(anchor * 10), {r = 1, g = 1, b = 1, a = 1}, 10)
-                        draw_text(surface, average_tree_position, "color", {r, g, b, a}, 10)
+                        draw_text(surface, average_tree_position, "color", color, 5)
                     end
                 else
                     quads_with_lights_by_uuid[quad_uuid] = nil
@@ -755,8 +762,6 @@ local function on_nth_tick(event)
 end
 
 local function mod_settings_changed(event)
-    -- global.quads_with_lights = {}
-    -- global.quads_with_no_trees = {}
     global.quads_with_lights_by_uuid = {}
     global.quads_with_no_trees_by_uuid = {}
     rendering.clear("glowing_trees")
