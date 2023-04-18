@@ -1,5 +1,10 @@
 
--- local table = require("__flib__.table")
+local insert = table.insert
+local random = math.random
+local format = string.format
+local floor = math.floor
+local sin = math.sin
+local cos = math.cos
 
 local glow_scales = {
     ["Tiny"] = 4,
@@ -28,24 +33,173 @@ local light_scale_and_intensity = {
     ["Enormous"] = {scale = 15, intensity = 0.05},
 }
 
-local function rainbow_color(anchor)
-    -- local speed = 0.01
-    local speed = 1
-    local r = math.sin(anchor * speed + 0) * 127 + 128
-    local g = math.sin(anchor * speed + 2) * 127 + 128
-    local b = math.sin(anchor * speed + 4) * 127 + 128
-    return {r = r, g = g, b = b, a = 0.5}
+local function rgba_to_hsva(r, g, b, a)
+    local max = math.max(r, g, b)
+    local min = math.min(r, g, b)
+    local h, s, v
+
+    v = max
+
+    local d = max - min
+    if max == 0 then
+        s = 0
+    else
+        s = d / max
+    end
+
+    if max == min then
+        h = 0
+    else
+        if max == r then
+            h = (g - b) / d
+            if g < b then
+                h = h + 6
+            end
+        elseif max == g then
+            h = (b - r) / d + 2
+        elseif max == b then
+            h = (r - g) / d + 4
+        end
+        h = h * 60
+    end
+
+    return h, s, v, a
 end
 
-local function temperature_color(temperature)
-    local r = math.sin(temperature / 10000 + 0) * 127 + 128
-    local g = math.sin(temperature / 10000 + 2) * 127 + 128
-    local b = math.sin(temperature / 10000 + 4) * 127 + 128
-    return {r = r, g = g, b = b, a = 0.5}
+local function hsva_to_rgba(h, s, v, a)
+    local r, g, b
+
+    local i = math.floor(h / 60)
+    local f = h / 60 - i
+    local p = v * (1 - s)
+    local q = v * (1 - f * s)
+    local t = v * (1 - (1 - f) * s)
+
+    if i == 0 then
+        r, g, b = v, t, p
+    elseif i == 1 then
+        r, g, b = q, v, p
+    elseif i == 2 then
+        r, g, b = p, v, t
+    elseif i == 3 then
+        r, g, b = p, q, v
+    elseif i == 4 then
+        r, g, b = t, p, v
+    else
+        r, g, b = v, p, q
+    end
+
+    return r, g, b, a
 end
 
-local function unique_id(position, player_surface_key, format)
-    return format("%d, %d, %d", player_surface_key, position.x, position.y)
+local function normalize_color(color)
+    local r, g, b, a, h, s, v = 0, 0, 0, 0, 0, 0, 0
+    h, s, v, a = rgba_to_hsva(color.r, color.g, color.b, color.a)
+    r, g, b, a = hsva_to_rgba(h, 0.9, 0.4, 1)
+    return { r = r, g = g, b = b, a = a }
+end
+
+---@param x number
+---@param y number
+---@param anchor number
+---@param frequency number
+---@param surface LuaSurface
+---@return Color
+local function rainbow_color(x, y, anchor, frequency, surface)
+    frequency = frequency or 0.1
+    local r = math.sin(anchor * frequency + 0) * 127 + 128
+    local g = math.sin(anchor * frequency + 2) * 127 + 128
+    local b = math.sin(anchor * frequency + 4) * 127 + 128
+    return {r = r, g = g, b = b, a = 255}
+end
+
+---@param x number
+---@param y number
+---@param anchor number
+---@param frequency number
+---@param surface LuaSurface
+---@return Color
+local function diagonal_rainbow(x, y, anchor, frequency, surface)
+    anchor = x + y
+    return rainbow_color(x, y, anchor, frequency, surface)
+end
+
+---@param x number
+---@param y number
+---@param anchor number
+---@param frequency number
+---@param surface LuaSurface
+---@return Color
+local function horizonal_rainbow(x, y, anchor, frequency, surface)
+    anchor = y
+    return rainbow_color(x, y, anchor, frequency, surface)
+end
+
+---@param x number
+---@param y number
+---@param anchor number
+---@param frequency number
+---@param surface LuaSurface
+---@return Color
+local function vertical_rainbow(x, y, anchor, frequency, surface)
+    anchor = x
+    return rainbow_color(x, y, anchor, frequency, surface)
+end
+
+---@param x number
+---@param y number
+---@param anchor number
+---@param frequency number
+---@param surface LuaSurface
+---@return Color
+local function lissajous_rainbow(x, y, anchor, frequency, surface)
+    anchor = (sin(x) * cos(y)) * 10000
+    return rainbow_color(x, y, anchor, frequency, surface)
+end
+
+---@param x number
+---@param y number
+---@param number_of_trees number
+---@param frequency number
+---@param surface LuaSurface
+---@return Color
+local function surrounding_biome_color(x, y, number_of_trees, frequency, surface)
+    local map_color = surface.get_tile(x, y).prototype.map_color
+    local hidden_tile = surface.get_hidden_tile({x, y})
+    if hidden_tile then
+        map_color = game.tile_prototypes[hidden_tile].map_color
+    end
+    -- return normalize_color(map_color)
+    return map_color
+end
+
+local color_modes = {
+    ["surrounding biome"] = surrounding_biome_color,
+    ["tree density"] = rainbow_color,
+    ["lissajous rainbow"] = lissajous_rainbow,
+    ["diagonal rainbow stripes"] = diagonal_rainbow,
+    ["horizontal rainbow stripes"] = horizonal_rainbow,
+    ["vertical rainbow stripes"] = vertical_rainbow,
+}
+
+local function average_color(colors)
+    local r = 0
+    local g = 0
+    local b = 0
+    local a = 0
+    for _, color in pairs(colors) do
+        r = r + color.r
+        g = g + color.g
+        b = b + color.b
+        a = a + color.a
+    end
+    return {
+        r = r / #colors,
+        g = g / #colors,
+        b = b / #colors,
+        -- a = a / #colors,
+        a = 255,
+    }
 end
 
 ---@param positions MapPosition[]
@@ -474,19 +628,13 @@ end
 ---@param event NthTickEventData
 local function on_nth_tick(event)
     local time_to_live = 60 * 20
-    local step_length = 8 * 4
+    local step_length = 8 * 2
     local steps = 128 / step_length
     local draw_rectangles = false
     global.quads_with_lights_by_uuid = global.quads_with_lights_by_uuid or {}
     local quads_with_lights_by_uuid = global.quads_with_lights_by_uuid
     global.quads_with_no_trees_by_uuid = global.quads_with_no_trees_by_uuid or {}
     local quads_with_no_trees_by_uuid = global.quads_with_no_trees_by_uuid
-    local insert = table.insert
-    local random = math.random
-    local format = string.format
-    local floor = math.floor
-    local sin = math.sin
-    local cos = math.cos
     for uuid, quad_data in pairs(quads_with_lights_by_uuid) do
         local expire_tick = quad_data.expire_tick
         if expire_tick <= event.tick then
@@ -505,7 +653,9 @@ local function on_nth_tick(event)
         local player_index = player.index
         local player_position = player.position
         local player_surface_key = player_index .. "_" .. surface_index
-        local scale_and_intensity = light_scale_and_intensity[player.mod_settings["glow_aura_scale"].value]
+        local mod_settings = player.mod_settings
+        local scale_and_intensity = light_scale_and_intensity[mod_settings["glow_aura_scale"].value]
+        local color_mode = mod_settings["glow_aura_color_mode"].value
         -- local quad_positions = get_surrounding_quad_positions(player_position)
         local quad_positions = get_surrounding_chunk_positions(player_position, steps, step_length)
         for _, quad_position in pairs(quad_positions) do
@@ -551,29 +701,29 @@ local function on_nth_tick(event)
                 --     radius = step_length * 0.55,
                 --     type = "tree",
                 -- }
-                if number_of_trees > 0 then
-                    -- local tree_positions = {}
-                    -- for _, tree in pairs(trees) do
-                    --     insert(tree_positions, tree.position)
-                    -- end
-                    -- local average_tree_position = average_position(tree_positions)
-                    local average_tree_position = get_middle_of_quad(quad_position, step_length)
+                if number_of_trees > 1 then
+                    local quad_midpoint = get_middle_of_quad(quad_position, step_length)
+                    local tree_positions = {}
+                    for count, tree in pairs(trees) do
+                        insert(tree_positions, tree.position)
+                        if not (count % 5) then insert(tree_positions, quad_midpoint) end
+                    end
+                    insert(tree_positions, quad_midpoint)
+                    local average_tree_position = average_position(tree_positions)
+                    -- local average_tree_position = get_middle_of_quad(quad_position, step_length)
                     local modified_time_to_live = time_to_live + random(1, 120)
-                    -- local anchor = (x ^ 2 + y ^ 2) * 0.0001
-                    local anchor = surface.calculate_tile_properties({"temperature"}, {average_tree_position})["temperature"][1] / 1
+
+                    local frequency = 0.025
+                    local color = color_modes[color_mode](x, y, number_of_trees, frequency, surface)
+
+                    color = normalize_color(color)
+
                     local light = rendering.draw_light{
                         sprite = "utility/light_medium",
                         scale = scale_and_intensity.scale,
-                        -- intensity = scale_and_intensity.intensity + number_of_trees / (1024 / step_length),
-                        intensity = scale_and_intensity.intensity + number_of_trees / 50,
-                        -- color = rainbow_color((number_of_trees / (1024 / step_length)) / 1000),
-                        -- color = rainbow_color(average_tree_color_index(trees) * 8),
-                        -- color = rainbow_color(average_tree_stage_index(trees) * 8),
-                        -- color = rainbow_color((sin(x * 0.25) + cos(y * 0.25))),
-                        color = rainbow_color(number_of_trees / 50),
-                        -- color = rainbow_color((x + y) * 0.25),
-                        -- color = rainbow_color(anchor),
-                        -- color = temperature_color(anchor),
+                        intensity = (scale_and_intensity.intensity + (number_of_trees / 256 * steps)),
+                        -- intensity = scale_and_intensity.intensity + number_of_trees / 100,
+                        color = color,
                         target = average_tree_position,
                         surface = surface,
                         time_to_live = modified_time_to_live,
@@ -586,7 +736,9 @@ local function on_nth_tick(event)
                     }
                     if draw_rectangles then
                         draw_rectangle(surface, area, {r = 1, g = 1, b = 1, a = 1})
-                        draw_text(surface, average_tree_position, number_of_trees, {r = 1, g = 1, b = 1, a = 1}, 10)
+                        -- draw_text(surface, average_tree_position, number_of_trees, {r = 1, g = 1, b = 1, a = 1}, 10)
+                        -- draw_text(surface, average_tree_position, floor(anchor * 10), {r = 1, g = 1, b = 1, a = 1}, 10)
+                        draw_text(surface, average_tree_position, "color", {r, g, b, a}, 10)
                     end
                 else
                     quads_with_lights_by_uuid[quad_uuid] = nil

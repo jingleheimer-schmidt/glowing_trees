@@ -86,6 +86,23 @@ local glow_scale = {
     order = "a-1"
 }
 
+local color_mode = {
+    type = "string-setting",
+    name = "glow_aura_color_mode",
+    setting_type = "runtime-per-user",
+    default_value = "tree density",
+    allowed_values = {
+        "horizontal rainbow stripes",
+        "vertical rainbow stripes",
+        "diagonal rainbow stripes",
+        "tree density",
+        "lissajous rainbow",
+        "surrounding biome"
+    },
+    order = "a-1"
+}
+
 data:extend({
     glow_scale,
+    color_mode,
 })
