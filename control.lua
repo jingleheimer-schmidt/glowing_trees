@@ -123,7 +123,7 @@ local function normalize_color(color, brightness_value)
     local r, g, b, a, h, s, v = 0, 0, 0, 0, 0, 0, 0
     h, s, v, a = rgba_to_hsva(color.r, color.g, color.b, color.a)
     -- r, g, b, a = hsva_to_rgba(h, 0.9, 0.15, 1)
-    r, g, b, a = hsva_to_rgba(h, 0.9, brightness_value, 1)
+    r, g, b, a = hsva_to_rgba(h, 0.8, brightness_value, 1)
     return { r = r, g = g, b = b, a = a }
 end
 
@@ -181,8 +181,17 @@ end
 ---@param surface LuaSurface
 ---@return Color
 local function lissajous_rainbow(x, y, anchor, frequency, surface)
-    anchor = (sin(x) * cos(y)) * 10000
-    return rainbow_color(x, y, anchor, frequency, surface)
+    -- anchor = (sin(x) * cos(y)) * 10000
+    -- anchor = sin(x) / sin(y)
+    frequency = 0.01
+    local choice = random(1, 3)
+    local choices = {
+        diagonal_rainbow,
+        horizonal_rainbow,
+        vertical_rainbow
+    }
+    return choices[choice](x, y, anchor, frequency, surface)
+    -- return rainbow_color(x, y, anchor, frequency, surface)
 end
 
 ---@param x number
@@ -209,7 +218,7 @@ end
 local function biome_plus_density(x, y, anchor, frequency, surface)
     local biome = surrounding_biome_color(x, y, anchor, frequency, surface)
     local density = tree_density_color(x, y, anchor, frequency, surface)
-    local weight = 2
+    local weight = 4
     return {
         r = (biome.r * weight + density.r) / (weight + 1),
         g = (biome.g * weight + density.g) / (weight + 1),
@@ -648,13 +657,14 @@ local function draw_rectangle(surface, area, color)
     }
 end
 
-local function draw_text(surface, position, text, color, scale)
+local function draw_text(surface, position, text, color, scale, time_to_live)
+    time_to_live = time_to_live or (60 * 20)
     rendering.draw_text{
         color = color,
         text = text,
         surface = surface,
         target = position,
-        time_to_live = 60 * 20,
+        time_to_live = time_to_live,
         scale = scale,
     }
 end
@@ -671,12 +681,17 @@ local function normalize_value(value, minimum, maximum)
     return (value - minimum) / (maximum - minimum)
 end
 
+local function round(number, round_to)
+    round_to = round_to or 1
+    local multiplier = 10^round_to -- i.e. 10 raised to the power of 3 (3 decimal places)
+    return math.floor(number * multiplier + 0.5) / multiplier
+end
+
 ---@param event NthTickEventData
 local function on_nth_tick(event)
-    local time_to_live = 60 * 15
+    local time_to_live = 60 * 30
     -- local step_length = 8 * 2
     -- local steps = 128 / step_length
-    -- local draw_rectangles = false
     local draw_rectangles = global.draw_rectangles or false
     global.quads_with_lights_by_uuid = global.quads_with_lights_by_uuid or {}
     local quads_with_lights_by_uuid = global.quads_with_lights_by_uuid
@@ -714,12 +729,12 @@ local function on_nth_tick(event)
         -- local quad_positions = get_surrounding_quad_positions(player_position)
         local quad_positions = get_surrounding_chunk_positions(player_position, steps, step_length)
         for _, quad_position in pairs(quad_positions) do
-            local quad_uuid = format("%s, %d, %d", player_surface_key, quad_position.x, quad_position.y)
+            local x = quad_position.x
+            local y = quad_position.y
+            local quad_uuid = format("%s, %d, %d", player_surface_key, x, y)
             if draw_rectangles then
                 draw_text(surface, quad_position, quad_uuid, {r = 1, g = 0, b = 0, a = 1}, 3)
             end
-            local x = quad_position.x
-            local y = quad_position.y
             local quad_has_existing_light = false
             local quad_has_no_trees = false
             local quad_data = nil
@@ -734,6 +749,14 @@ local function on_nth_tick(event)
             local quad_is_new = not quad_has_existing_light and not quad_has_no_trees
             local quad_with_light_needs_update = quad_has_existing_light and (quad_data.expire_tick < event.tick + 60)
             local quad_with_no_trees_needs_update = quad_has_no_trees and (quad_data.expire_tick < event.tick + 60)
+            if quad_is_new then
+                if not surface.is_chunk_generated({x / 32, y / 32}) then
+                    if draw_rectangles then
+                        draw_text(surface, {x, y + 2}, "\nnot generated", {r = 1, g = 0.5, b = 0.5, a = 1}, 3, event.nth_tick + 10)
+                    end
+                    goto next_quad
+                end
+            end
             if quad_with_light_needs_update then
                 if quad_data.expire_tick < event.tick + 60 then
                     local modified_time_to_live = time_to_live + random(1, 120)
@@ -768,7 +791,7 @@ local function on_nth_tick(event)
                     color = normalize_color(color, brightness_value)
 
                     -- local intensity = scale_and_intensity.intensity + normalize_value(number_of_trees, 1, 32)
-                    intensity = 0.25 + min(normalize_value(number_of_trees, 1, 32), 1)
+                    intensity = 0.4 + min(normalize_value(number_of_trees, 1, 32), 0.6)
                     -- local intensity = (scale_and_intensity.intensity + (number_of_trees / 256 * steps))
 
                     local light = rendering.draw_light{
@@ -793,7 +816,7 @@ local function on_nth_tick(event)
                         draw_rectangle(surface, area, {r = 1, g = 1, b = 1, a = 1})
                         -- draw_text(surface, average_tree_position, number_of_trees, {r = 1, g = 1, b = 1, a = 1}, 10)
                         -- draw_text(surface, average_tree_position, floor(anchor * 10), {r = 1, g = 1, b = 1, a = 1}, 10)
-                        draw_text(surface, average_tree_position, intensity, color, 5)
+                        draw_text(surface, average_tree_position, round(intensity, 3), color, 5)
                     end
                 else
                     quads_with_lights_by_uuid[quad_uuid] = nil
@@ -805,6 +828,7 @@ local function on_nth_tick(event)
                     end
                 end
             end
+            ::next_quad::
         end
     end
 end
