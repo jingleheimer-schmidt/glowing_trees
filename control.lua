@@ -5,13 +5,14 @@ local format = string.format
 local floor = math.floor
 local sin = math.sin
 local cos = math.cos
+local min = math.min
 
 local glow_scales = {
-    ["tiny"] = 4,
-    ["small"] = 5,
-    ["medium"] = 6,
-    ["large"] = 7,
-    ["huge"] = 8,
+    ["tiny"] = 0.5,
+    ["small"] = 1,
+    ["medium"] = 2.5,
+    ["large"] = 4,
+    ["huge"] = 6,
     ["enormous"] = 9,
 }
 
@@ -24,13 +25,22 @@ local glow_chance_percents = {
     ["all"] = 1,
 }
 
+-- local light_scale_and_intensity = {
+--     ["tiny"] = {scale = 3, intensity = 0.3},
+--     ["small"] = {scale = 4, intensity = 0.25},
+--     ["medium"] = {scale = 5, intensity = 0.2},
+--     ["large"] = {scale = 6.5, intensity = 0.1},
+--     ["huge"] = {scale = 8, intensity = 0.001},
+--     ["enormous"] = {scale = 10, intensity = 0.0001},
+-- }
+
 local light_scale_and_intensity = {
-    ["tiny"] = {scale = 5, intensity = 0.3},
-    ["small"] = {scale = 6, intensity = 0.25},
-    ["medium"] = {scale = 7, intensity = 0.2},
-    ["large"] = {scale = 9, intensity = 0.1},
-    ["huge"] = {scale = 11, intensity = 0.001},
-    ["enormous"] = {scale = 15, intensity = 0.0001},
+    ["tiny"] = {scale = 4, intensity = 0.1},
+    ["small"] = {scale = 4.5, intensity = 0.1},
+    ["medium"] = {scale = 5, intensity = 0.1},
+    ["large"] = {scale = 6, intensity = 0.1},
+    ["huge"] = {scale = 7.5, intensity = 0.1},
+    ["enormous"] = {scale = 10, intensity = 0.1},
 }
 
 local brightness = {
@@ -657,8 +667,8 @@ local function average_tree_stage_index(trees)
     return tree_stage_index / #trees
 end
 
-local function normalize_value(value, min, max)
-    return (value - min) / (max - min)
+local function normalize_value(value, minimum, maximum)
+    return (value - minimum) / (maximum - minimum)
 end
 
 ---@param event NthTickEventData
@@ -696,6 +706,8 @@ local function on_nth_tick(event)
         local player_index = player.index
         local player_position = player.position
         local player_surface_key = player_index .. "_" .. surface_index
+        local scale = scale_and_intensity.scale
+        local intensity = scale_and_intensity.intensity
         local step_length = 8 * 2
         -- local steps = 128 / step_length
         local steps = step_count / step_length
@@ -755,10 +767,15 @@ local function on_nth_tick(event)
 
                     color = normalize_color(color, brightness_value)
 
+                    -- local intensity = scale_and_intensity.intensity + normalize_value(number_of_trees, 1, 32)
+                    intensity = 0.25 + min(normalize_value(number_of_trees, 1, 32), 1)
+                    -- local intensity = (scale_and_intensity.intensity + (number_of_trees / 256 * steps))
+
                     local light = rendering.draw_light{
                         sprite = "utility/light_medium",
-                        scale = scale_and_intensity.scale,
-                        intensity = (scale_and_intensity.intensity + (number_of_trees / 256 * steps)),
+                        scale = scale,
+                        intensity = intensity,
+                        -- intensity = (scale_and_intensity.intensity + (number_of_trees / 256 * steps)),
                         -- intensity = (scale_and_intensity.intensity + (number_of_trees / 512 * steps)),
                         -- intensity = (scale_and_intensity.intensity + (number_of_trees / 1024 * steps)),
                         color = color,
@@ -776,7 +793,7 @@ local function on_nth_tick(event)
                         draw_rectangle(surface, area, {r = 1, g = 1, b = 1, a = 1})
                         -- draw_text(surface, average_tree_position, number_of_trees, {r = 1, g = 1, b = 1, a = 1}, 10)
                         -- draw_text(surface, average_tree_position, floor(anchor * 10), {r = 1, g = 1, b = 1, a = 1}, 10)
-                        draw_text(surface, average_tree_position, "color", color, 5)
+                        draw_text(surface, average_tree_position, intensity, color, 5)
                     end
                 else
                     quads_with_lights_by_uuid[quad_uuid] = nil
@@ -805,6 +822,7 @@ local function toggle_debug_mode()
     else
         game.print("Glowing Trees: Debug mode disabled")
     end
+    mod_settings_changed()
 end
 
 local function add_commands()

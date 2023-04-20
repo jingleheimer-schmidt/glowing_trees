@@ -107,7 +107,7 @@ local color_mode = {
     type = "string-setting",
     name = "glow_aura_color_mode",
     setting_type = "runtime-per-user",
-    default_value = "biome plus density",
+    default_value = "surrounding biome",
     allowed_values = {
         "none",
         "surrounding biome",
