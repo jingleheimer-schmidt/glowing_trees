@@ -5,11 +5,10 @@
   "author": "asher_sky",
   "contact": "",
   "homepage": "",
-  "description": "Adds a subtle glow to the trees",
+  "description": "Adds a glowing aura to the trees, and bioluminescence for foliage and decoratives.",
   "factorio_version": "1.1",
   "dependencies": [
 	"base",
-  "flib",
   "? alien-biomes"
 	]
 }

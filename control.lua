@@ -7,30 +7,47 @@ local sin = math.sin
 local cos = math.cos
 
 local glow_scales = {
-    ["Tiny"] = 4,
-    ["Small"] = 5,
-    ["Medium"] = 6,
-    ["Large"] = 7,
-    ["Huge"] = 8,
-    ["Enormous"] = 9,
+    ["tiny"] = 4,
+    ["small"] = 5,
+    ["medium"] = 6,
+    ["large"] = 7,
+    ["huge"] = 8,
+    ["enormous"] = 9,
 }
 
 local glow_chance_percents = {
-    ["None"] = 0,
-    ["Few"] = 0.125,
-    ["Some"] = 0.25,
-    ["Half"] = 0.5,
-    ["Most"] = 0.75,
-    ["All"] = 1,
+    ["none"] = 0,
+    ["few"] = 0.125,
+    ["some"] = 0.25,
+    ["half"] = 0.5,
+    ["most"] = 0.75,
+    ["all"] = 1,
 }
 
 local light_scale_and_intensity = {
-    ["Tiny"] = {scale = 5, intensity = 0.3},
-    ["Small"] = {scale = 6, intensity = 0.25},
-    ["Medium"] = {scale = 7, intensity = 0.2},
-    ["Large"] = {scale = 9, intensity = 0.1},
-    ["Huge"] = {scale = 11, intensity = 0.001},
-    ["Enormous"] = {scale = 15, intensity = 0.0001},
+    ["tiny"] = {scale = 5, intensity = 0.3},
+    ["small"] = {scale = 6, intensity = 0.25},
+    ["medium"] = {scale = 7, intensity = 0.2},
+    ["large"] = {scale = 9, intensity = 0.1},
+    ["huge"] = {scale = 11, intensity = 0.001},
+    ["enormous"] = {scale = 15, intensity = 0.0001},
+}
+
+local brightness = {
+    ["minimum"] = 0.05,
+    ["very low"] = 0.1,
+    ["low"] = 0.15,
+    ["medium"] = 0.25,
+    ["high"] = 0.4,
+    ["very high"] = 0.6,
+    ["maximum"] = 0.75,
+}
+
+local step_counts = {
+    ["small"] = 96,
+    ["medium"] = 128,
+    ["large"] = 192,
+    ["huge"] = 256,
 }
 
 local function rgba_to_hsva(r, g, b, a)
@@ -92,10 +109,11 @@ local function hsva_to_rgba(h, s, v, a)
     return r, g, b, a
 end
 
-local function normalize_color(color)
+local function normalize_color(color, brightness_value)
     local r, g, b, a, h, s, v = 0, 0, 0, 0, 0, 0, 0
     h, s, v, a = rgba_to_hsva(color.r, color.g, color.b, color.a)
-    r, g, b, a = hsva_to_rgba(h, 0.9, 0.15, 1)
+    -- r, g, b, a = hsva_to_rgba(h, 0.9, 0.15, 1)
+    r, g, b, a = hsva_to_rgba(h, 0.9, brightness_value, 1)
     return { r = r, g = g, b = b, a = a }
 end
 
@@ -173,20 +191,26 @@ local function surrounding_biome_color(x, y, number_of_trees, frequency, surface
     return map_color
 end
 
+local function tree_density_color(x, y, number_of_trees, frequency, surface)
+    local anchor = number_of_trees * 2
+    return rainbow_color(x, y, anchor, frequency, surface)
+end
+
 local function biome_plus_density(x, y, anchor, frequency, surface)
     local biome = surrounding_biome_color(x, y, anchor, frequency, surface)
-    local density = rainbow_color(x, y, anchor, frequency, surface)
+    local density = tree_density_color(x, y, anchor, frequency, surface)
+    local weight = 2
     return {
-        r = (biome.r * 15 + density.r) / 16,
-        g = (biome.g * 15 + density.g) / 16,
-        b = (biome.b * 15 + density.b) / 16,
+        r = (biome.r * weight + density.r) / (weight + 1),
+        g = (biome.g * weight + density.g) / (weight + 1),
+        b = (biome.b * weight + density.b) / (weight + 1),
         a = 255
     }
 end
 
 local color_modes = {
     ["surrounding biome"] = surrounding_biome_color,
-    ["tree density"] = rainbow_color,
+    ["tree density"] = tree_density_color,
     ["lissajous rainbow"] = lissajous_rainbow,
     ["diagonal rainbow stripes"] = diagonal_rainbow,
     ["horizontal rainbow stripes"] = horizonal_rainbow,
@@ -639,10 +663,11 @@ end
 
 ---@param event NthTickEventData
 local function on_nth_tick(event)
-    local time_to_live = 60 * 20
-    local step_length = 8 * 2
-    local steps = 128 / step_length
-    local draw_rectangles = false
+    local time_to_live = 60 * 15
+    -- local step_length = 8 * 2
+    -- local steps = 128 / step_length
+    -- local draw_rectangles = false
+    local draw_rectangles = global.draw_rectangles or false
     global.quads_with_lights_by_uuid = global.quads_with_lights_by_uuid or {}
     local quads_with_lights_by_uuid = global.quads_with_lights_by_uuid
     global.quads_with_no_trees_by_uuid = global.quads_with_no_trees_by_uuid or {}
@@ -660,14 +685,20 @@ local function on_nth_tick(event)
         end
     end
     for _, player in pairs(game.connected_players) do
+        local mod_settings = player.mod_settings
+        local scale_and_intensity = light_scale_and_intensity[mod_settings["glow_aura_scale"].value]
+        local color_mode = mod_settings["glow_aura_color_mode"].value
+        local brightness_value = brightness[mod_settings["glow_aura_brightness"].value]
+        local step_count = step_counts[mod_settings["glow_aura_step_count"].value]
+        if color_mode == "none" then break end
         local surface = player.surface
         local surface_index = surface.index
         local player_index = player.index
         local player_position = player.position
         local player_surface_key = player_index .. "_" .. surface_index
-        local mod_settings = player.mod_settings
-        local scale_and_intensity = light_scale_and_intensity[mod_settings["glow_aura_scale"].value]
-        local color_mode = mod_settings["glow_aura_color_mode"].value
+        local step_length = 8 * 2
+        -- local steps = 128 / step_length
+        local steps = step_count / step_length
         -- local quad_positions = get_surrounding_quad_positions(player_position)
         local quad_positions = get_surrounding_chunk_positions(player_position, steps, step_length)
         for _, quad_position in pairs(quad_positions) do
@@ -722,7 +753,7 @@ local function on_nth_tick(event)
                     local frequency = 0.0125
                     local color = color_modes[color_mode](x, y, number_of_trees, frequency, surface)
 
-                    color = normalize_color(color)
+                    color = normalize_color(color, brightness_value)
 
                     local light = rendering.draw_light{
                         sprite = "utility/light_medium",
@@ -750,7 +781,7 @@ local function on_nth_tick(event)
                 else
                     quads_with_lights_by_uuid[quad_uuid] = nil
                     quads_with_no_trees_by_uuid[quad_uuid] = {
-                        expire_tick = event.tick + floor((time_to_live + random(1, 120)) * 1.5),
+                        expire_tick = event.tick + floor((time_to_live + random(1, 120)) * 1.25),
                     }
                     if draw_rectangles then
                         draw_rectangle(surface, area, {r = 0, g = 1, b = 0, a = 1})
@@ -761,12 +792,33 @@ local function on_nth_tick(event)
     end
 end
 
-local function mod_settings_changed(event)
+local function mod_settings_changed()
     global.quads_with_lights_by_uuid = {}
     global.quads_with_no_trees_by_uuid = {}
     rendering.clear("glowing_trees")
 end
 
+local function toggle_debug_mode()
+    global.draw_rectangles = not global.draw_rectangles
+    if global.draw_rectangles then
+        game.print("Glowing Trees: Debug mode enabled")
+    else
+        game.print("Glowing Trees: Debug mode disabled")
+    end
+end
+
+local function add_commands()
+    commands.add_command("glowingdebug", "- toggles debug mode to visualize what the glowing trees algorithm is doing", toggle_debug_mode)
+end
+
 script.on_nth_tick(10, on_nth_tick)
 
 script.on_event(defines.events.on_runtime_mod_setting_changed, mod_settings_changed)
+
+script.on_init(function()
+    add_commands()
+end)
+
+script.on_load(function()
+    add_commands()
+end)

@@ -2,21 +2,21 @@
 require("util")
 
 local glow_scales = {
-    ["Tiny"] = 4,
-    ["Small"] = 5,
-    ["Medium"] = 6,
-    ["Large"] = 7,
-    ["Huge"] = 8,
-    ["Enormous"] = 9,
+    ["tiny"] = 4,
+    ["small"] = 5,
+    ["nedium"] = 6,
+    ["large"] = 7,
+    ["huge"] = 8,
+    ["enormous"] = 9,
 }
 
 local glow_chance_percents = {
-    ["None"] = 0,
-    ["Few"] = 0.125,
-    ["Some"] = 0.25,
-    ["Half"] = 0.5,
-    ["Most"] = 0.75,
-    ["All"] = 1,
+    ["none"] = 0,
+    ["few"] = 0.125,
+    ["some"] = 0.25,
+    ["half"] = 0.5,
+    ["most"] = 0.75,
+    ["all"] = 1,
 }
 
 -- local scale = glow_scales[settings.startup["glow_aura_scale"].value]

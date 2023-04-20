@@ -3,14 +3,14 @@ local glow_leaves_chance = {
     type = "string-setting",
     name = "glowing_leaves_chance",
     setting_type = "startup",
-    default_value = "Most",
+    default_value = "most",
     allowed_values = {
-        "None",
-        "Few",
-        "Some",
-        "Half",
-        "Most",
-        "All",
+        "none",
+        "few",
+        "some",
+        "half",
+        "most",
+        "all",
     },
     order = "a-1"
 }
@@ -19,16 +19,16 @@ local glow_decoratives_chance = {
     type = "string-setting",
     name = "glowing_decoratives_chance",
     setting_type = "startup",
-    default_value = "Few",
+    default_value = "few",
     allowed_values = {
-        "None",
-        "Few",
-        "Some",
-        "Half",
-        "Most",
-        "All",
+        "none",
+        "few",
+        "some",
+        "half",
+        "most",
+        "all",
     },
-    order = "a-1"
+    order = "a-2"
 }
 
 -- local glow_aura_haze_chance = {
@@ -91,16 +91,16 @@ local glow_scale = {
     type = "string-setting",
     name = "glow_aura_scale",
     setting_type = "runtime-per-user",
-    default_value = "Medium",
+    default_value = "large",
     allowed_values = {
-        "Tiny",
-        "Small",
-        "Medium",
-        "Large",
-        "Huge",
-        "Enormous",
+        "tiny",
+        "small",
+        "medium",
+        "large",
+        "huge",
+        "enormous",
     },
-    order = "a-1"
+    order = "a-2"
 }
 
 local color_mode = {
@@ -109,6 +109,7 @@ local color_mode = {
     setting_type = "runtime-per-user",
     default_value = "biome plus density",
     allowed_values = {
+        "none",
         "surrounding biome",
         "tree density",
         "biome plus density",
@@ -120,7 +121,40 @@ local color_mode = {
     order = "a-1"
 }
 
+local brightness = {
+    type = "string-setting",
+    name = "glow_aura_brightness",
+    setting_type = "runtime-per-user",
+    default_value = "medium",
+    allowed_values = {
+        "minimum",
+        "very low",
+        "low",
+        "medium",
+        "high",
+        "very high",
+        "maximum",
+    },
+    order = "a-3"
+}
+
+local step_count = {
+    type = "string-setting",
+    name = "glow_aura_step_count",
+    setting_type = "runtime-per-user",
+    default_value = "medium",
+    allowed_values = {
+        "small",
+        "medium",
+        "large",
+        "huge",
+    },
+    order = "a-4"
+}
+
 data:extend({
     glow_scale,
     color_mode,
+    brightness,
+    step_count,
 })
