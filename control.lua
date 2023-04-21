@@ -699,6 +699,34 @@ local function round(number, round_to)
     return math.floor(number * multiplier + 0.5) / multiplier
 end
 
+-- return a table with the players sorted into groups based on if they have the same settings
+---@param connected_players LuaPlayer[]
+local function unique_groups(connected_players)
+    local groups = {}
+    local game_settings = settings.global
+    for _, player in pairs(connected_players) do
+        local mod_settings = player.mod_settings
+        local light_scale = mod_settings["glow_aura_scale"].value
+        local color_mode = mod_settings["glow_aura_color_mode"].value
+        local brightness_value = mod_settings["glow_aura_brightness"].value
+        local step_count = mod_settings["glow_aura_step_count"].value
+        -- local group_name = format("%s_%s_%s_%s", light_scale, color_mode, brightness_value, step_count)
+        if light_scale == "sync" then light_scale = light_scales[game_settings["global_glow_aura_scale"].value] end
+        if color_mode == "sync" then color_mode = game_settings["global_glow_aura_color_mode"].value end
+        if brightness_value == "sync" then brightness_value = brightness[game_settings["global_glow_aura_brightness"].value] end
+        if step_count == "sync" then step_count = step_counts[game_settings["global_glow_aura_step_count"].value] end
+        local group_name = format("%d_%d_%s", light_scale, brightness_value, color_mode)
+        groups[group_name] = groups[group_name] or {}
+        groups[group_name].light_scale = groups[group_name].light_scale or light_scale
+        groups[group_name].color_mode = groups[group_name].color_mode or color_mode
+        groups[group_name].brightness_value = groups[group_name].brightness_value or brightness_value
+        groups[group_name].step_count = groups[group_name].step_count or step_count
+        groups[group_name].players = groups[group_name].players or {}
+        insert(groups[group_name].players, player)
+    end
+    return groups
+end
+
 ---@param event NthTickEventData
 local function on_nth_tick(event)
     local time_to_live = 60 * 30
@@ -709,7 +737,7 @@ local function on_nth_tick(event)
     local quads_with_lights_by_uuid = global.quads_with_lights_by_uuid
     global.quads_with_no_trees_by_uuid = global.quads_with_no_trees_by_uuid or {}
     local quads_with_no_trees_by_uuid = global.quads_with_no_trees_by_uuid
-    local game_settings = settings.global
+    -- local game_settings = settings.global
     local connected_players = game.connected_players
     for uuid, quad_data in pairs(quads_with_lights_by_uuid) do
         local expire_tick = quad_data.expire_tick
@@ -723,151 +751,267 @@ local function on_nth_tick(event)
             quads_with_no_trees_by_uuid[uuid] = nil
         end
     end
-    local synced_players = {}
-    local synced_player_ids = {}
-    for _, player in pairs(connected_players) do
-        local player_settings = player.mod_settings
-        if player_settings["glow_aura_scale"].value == "sync"
-        and player_settings["glow_aura_color_mode"].value == "sync"
-        and player_settings["glow_aura_brightness"].value == "sync"
-        and player_settings["glow_aura_step_count"].value == "sync" then
-            insert(synced_players, player)
-            synced_player_ids[player.index] = true
-        end
-    end
-    for _, player in pairs(connected_players) do
-        local mod_settings = player.mod_settings
-        local light_scale = light_scales[mod_settings["glow_aura_scale"].value]
-        local color_mode = mod_settings["glow_aura_color_mode"].value
-        local brightness_value = brightness[mod_settings["glow_aura_brightness"].value]
-        local step_count = step_counts[mod_settings["glow_aura_step_count"].value]
-        if light_scale == "sync" then light_scale = light_scales[game_settings["global_glow_aura_scale"].value] end
-        if color_mode == "sync" then color_mode = game_settings["global_glow_aura_color_mode"].value end
-        if brightness_value == "sync" then brightness_value = brightness[game_settings["global_glow_aura_brightness"].value] end
-        if step_count == "sync" then step_count = step_counts[game_settings["global_glow_aura_step_count"].value] end
-        if color_mode == "none" then goto next_player end
-        local surface = player.surface
-        local surface_index = surface.index
-        local player_index = player.index
-        local player_position = player.position
-        local player_surface_key = player_index .. "_" .. surface_index
-        if synced_player_ids[player_index] then player_surface_key = "synced_" .. surface_index end
-        -- local scale = scale_and_intensity.scale
-        local scale = light_scale
-        -- local intensity = 
+    -- local synced_players = {}
+    -- local synced_player_ids = {}
+    -- for _, player in pairs(connected_players) do
+    --     local player_settings = player.mod_settings
+    --     if player_settings["glow_aura_scale"].value == "sync"
+    --     and player_settings["glow_aura_color_mode"].value == "sync"
+    --     and player_settings["glow_aura_brightness"].value == "sync"
+    --     and player_settings["glow_aura_step_count"].value == "sync" then
+    --         insert(synced_players, player)
+    --         synced_player_ids[player.index] = true
+    --     end
+    -- end
+    local groups = unique_groups(connected_players)
+    for group_name, group in pairs(groups) do
+        local color_mode = group.color_mode
+        if color_mode == "none" then goto next_group end
+        local light_scale = group.light_scale
+        local brightness_value = group.brightness_value
+        local step_count = group.step_count
         local intensity = 0.1
         local step_length = 8 * 2
-        -- local steps = 128 / step_length
         local steps = step_count / step_length
-        -- local quad_positions = get_surrounding_quad_positions(player_position)
-        local quad_positions = get_surrounding_chunk_positions(player_position, steps, step_length)
-        for _, quad_position in pairs(quad_positions) do
-            local x = quad_position.x
-            local y = quad_position.y
-            local quad_uuid = format("%s, %d, %d", player_surface_key, x, y)
-            if draw_rectangles then
-                draw_text(surface, quad_position, quad_uuid, {r = 1, g = 0, b = 0, a = 1}, 3)
-            end
-            local quad_has_existing_light = false
-            local quad_has_no_trees = false
-            local quad_data = nil
-            if quads_with_lights_by_uuid and quads_with_lights_by_uuid[quad_uuid] then
-                quad_has_existing_light = true
-                quad_data = quads_with_lights_by_uuid[quad_uuid]
-            end
-            if quads_with_no_trees_by_uuid and quads_with_no_trees_by_uuid[quad_uuid] then
-                quad_has_no_trees = true
-                quad_data = quads_with_no_trees_by_uuid[quad_uuid]
-            end
-            local quad_is_new = not quad_has_existing_light and not quad_has_no_trees
-            local quad_with_light_needs_update = quad_has_existing_light and (quad_data.expire_tick < event.tick + 60)
-            local quad_with_no_trees_needs_update = quad_has_no_trees and (quad_data.expire_tick < event.tick + 60)
-            if quad_is_new then
-                if not surface.is_chunk_generated({x / 32, y / 32}) then
-                    if draw_rectangles then
-                        draw_text(surface, {x, y + 2}, "not generated", {r = 1, g = 0.5, b = 0.5, a = 1}, 3, event.nth_tick + 10)
-                    end
-                    goto next_quad
+        local players = group.players
+        for _, player in pairs(players) do
+            local surface = player.surface
+            local surface_index = surface.index
+            -- local player_index = player.index
+            local player_position = player.position
+            local player_surface_key = format("%s_%d", group_name, surface_index)
+            -- local scale = light_scale
+            local quad_positions = get_surrounding_chunk_positions(player_position, steps, step_length)
+            for _, quad_position in pairs(quad_positions) do
+                local x = quad_position.x
+                local y = quad_position.y
+                local quad_uuid = format("%s, %d, %d", player_surface_key, x, y)
+                if draw_rectangles then
+                    draw_text(surface, quad_position, quad_uuid, {r = 1, g = 0, b = 1, a = 1}, 1)
                 end
-            end
-            if quad_with_light_needs_update then
-                if quad_data.expire_tick < event.tick + 60 then
-                    local modified_time_to_live = time_to_live + random(1, 120)
-                    rendering.set_time_to_live(quad_data.light, modified_time_to_live)
-                    quads_with_no_trees_by_uuid[quad_uuid] = nil
-                    quads_with_lights_by_uuid[quad_uuid].expire_tick = event.tick + modified_time_to_live
-                    if draw_rectangles then
-                        draw_rectangle(surface, get_area_of_quad(quad_position, step_length), {r = 0, g = 0, b = 1, a = 1})
+                local quad_has_existing_light = false
+                local quad_has_no_trees = false
+                local quad_data = nil
+                if quads_with_lights_by_uuid and quads_with_lights_by_uuid[quad_uuid] then
+                    quad_has_existing_light = true
+                    quad_data = quads_with_lights_by_uuid[quad_uuid]
+                end
+                if quads_with_no_trees_by_uuid and quads_with_no_trees_by_uuid[quad_uuid] then
+                    quad_has_no_trees = true
+                    quad_data = quads_with_no_trees_by_uuid[quad_uuid]
+                end
+                local quad_is_new = not quad_has_existing_light and not quad_has_no_trees
+                local quad_with_light_needs_update = quad_has_existing_light and (quad_data.expire_tick < event.tick + 60)
+                local quad_with_no_trees_needs_update = quad_has_no_trees and (quad_data.expire_tick < event.tick + 60)
+                if quad_is_new then
+                    if not surface.is_chunk_generated({x / 32, y / 32}) then
+                        if draw_rectangles then
+                            draw_text(surface, {x, y + 2}, "not generated", {r = 1, g = 0.5, b = 0.5, a = 1}, 3, event.nth_tick + 10)
+                        end
+                        goto next_quad
                     end
                 end
-            elseif quad_with_no_trees_needs_update or quad_is_new then
-                local area = get_area_of_quad(quad_position, step_length)
-                local trees = surface.find_entities_filtered{
-                    area = area,
-                    type = "tree",
-                }
-                local number_of_trees = #trees
-                if number_of_trees > 1 then
-                    local quad_midpoint = get_middle_of_quad(quad_position, step_length)
-                    local tree_positions = {}
-                    for count, tree in pairs(trees) do
-                        insert(tree_positions, tree.position)
-                        if not (count % 5) then insert(tree_positions, quad_midpoint) end
+                if quad_with_light_needs_update then
+                    if quad_data.expire_tick < event.tick + 60 then
+                        local modified_time_to_live = time_to_live + random(1, 120)
+                        rendering.set_time_to_live(quad_data.light, modified_time_to_live)
+                        quads_with_no_trees_by_uuid[quad_uuid] = nil
+                        quads_with_lights_by_uuid[quad_uuid].expire_tick = event.tick + modified_time_to_live
+                        if draw_rectangles then
+                            draw_rectangle(surface, get_area_of_quad(quad_position, step_length), {r = 0, g = 0, b = 1, a = 1})
+                        end
                     end
-                    insert(tree_positions, quad_midpoint)
-                    local average_tree_position = average_position(tree_positions)
-                    local modified_time_to_live = time_to_live + random(1, 120)
-
-                    local frequency = 0.0125
-                    local color = color_modes[color_mode](x, y, number_of_trees, frequency, surface)
-
-                    color = normalize_color(color, brightness_value)
-
-                    -- local intensity = scale_and_intensity.intensity + normalize_value(number_of_trees, 1, 32)
-                    intensity = 0.4 + min(normalize_value(number_of_trees, 1, 32), 0.6)
-                    -- local intensity = (scale_and_intensity.intensity + (number_of_trees / 256 * steps))
-
-                    local players = {player}
-                    if synced_player_ids[player_index] then players = synced_players end
-
-                    local light = rendering.draw_light{
-                        sprite = "utility/light_medium",
-                        scale = scale,
-                        intensity = intensity,
-                        -- intensity = (scale_and_intensity.intensity + (number_of_trees / 256 * steps)),
-                        -- intensity = (scale_and_intensity.intensity + (number_of_trees / 512 * steps)),
-                        -- intensity = (scale_and_intensity.intensity + (number_of_trees / 1024 * steps)),
-                        color = color,
-                        target = average_tree_position,
-                        surface = surface,
-                        time_to_live = modified_time_to_live,
-                        players = players,
+                elseif quad_with_no_trees_needs_update or quad_is_new then
+                    local area = get_area_of_quad(quad_position, step_length)
+                    local trees = surface.find_entities_filtered{
+                        area = area,
+                        type = "tree",
                     }
-                    quads_with_no_trees_by_uuid[quad_uuid] = nil
-                    quads_with_lights_by_uuid[quad_uuid] = {
-                        expire_tick = event.tick + modified_time_to_live,
-                        light = light,
-                    }
-                    if draw_rectangles then
-                        draw_rectangle(surface, area, {r = 1, g = 1, b = 1, a = 1})
-                        -- draw_text(surface, average_tree_position, number_of_trees, {r = 1, g = 1, b = 1, a = 1}, 10)
-                        -- draw_text(surface, average_tree_position, floor(anchor * 10), {r = 1, g = 1, b = 1, a = 1}, 10)
-                        draw_text(surface, average_tree_position, round(intensity, 3), color, 5)
-                    end
-                else
-                    quads_with_lights_by_uuid[quad_uuid] = nil
-                    quads_with_no_trees_by_uuid[quad_uuid] = {
-                        expire_tick = event.tick + floor((time_to_live + random(1, 120)) * 1.25),
-                    }
-                    if draw_rectangles then
-                        draw_rectangle(surface, area, {r = 0, g = 1, b = 0, a = 1})
+                    local number_of_trees = #trees
+                    if number_of_trees > 1 then
+                        local quad_midpoint = get_middle_of_quad(quad_position, step_length)
+                        local tree_positions = {}
+                        for count, tree in pairs(trees) do
+                            insert(tree_positions, tree.position)
+                            if not (count % 5) then insert(tree_positions, quad_midpoint) end
+                        end
+                        insert(tree_positions, quad_midpoint)
+                        local average_tree_position = average_position(tree_positions)
+                        local modified_time_to_live = time_to_live + random(1, 120)
+
+                        local frequency = 0.0125
+                        local color = color_modes[color_mode](x, y, number_of_trees, frequency, surface)
+
+                        color = normalize_color(color, brightness_value)
+                        intensity = 0.4 + min(normalize_value(number_of_trees, 1, 32), 0.6)
+
+                        local light = rendering.draw_light{
+                            sprite = "utility/light_medium",
+                            scale = light_scale,
+                            intensity = intensity,
+                            color = color,
+                            target = average_tree_position,
+                            surface = surface,
+                            time_to_live = modified_time_to_live,
+                            players = players,
+                        }
+                        quads_with_no_trees_by_uuid[quad_uuid] = nil
+                        quads_with_lights_by_uuid[quad_uuid] = {
+                            expire_tick = event.tick + modified_time_to_live,
+                            light = light,
+                        }
+                        if draw_rectangles then
+                            draw_rectangle(surface, area, {r = 1, g = 1, b = 1, a = 1})
+                            draw_text(surface, average_tree_position, round(intensity, 3), color, 5)
+                        end
+                    else
+                        quads_with_lights_by_uuid[quad_uuid] = nil
+                        quads_with_no_trees_by_uuid[quad_uuid] = {
+                            expire_tick = event.tick + floor((time_to_live + random(1, 120)) * 1.25),
+                        }
+                        if draw_rectangles then
+                            draw_rectangle(surface, area, {r = 0, g = 1, b = 0, a = 1})
+                        end
                     end
                 end
+                ::next_quad::
             end
-            ::next_quad::
         end
-        ::next_player::
+        ::next_group::
     end
+    -- for _, player in pairs(connected_players) do
+    --     local mod_settings = player.mod_settings
+    --     local light_scale = light_scales[mod_settings["glow_aura_scale"].value]
+    --     local color_mode = mod_settings["glow_aura_color_mode"].value
+    --     local brightness_value = brightness[mod_settings["glow_aura_brightness"].value]
+    --     local step_count = step_counts[mod_settings["glow_aura_step_count"].value]
+    --     if light_scale == "sync" then light_scale = light_scales[game_settings["global_glow_aura_scale"].value] end
+    --     if color_mode == "sync" then color_mode = game_settings["global_glow_aura_color_mode"].value end
+    --     if brightness_value == "sync" then brightness_value = brightness[game_settings["global_glow_aura_brightness"].value] end
+    --     if step_count == "sync" then step_count = step_counts[game_settings["global_glow_aura_step_count"].value] end
+    --     if color_mode == "none" then goto next_player end
+    --     local surface = player.surface
+    --     local surface_index = surface.index
+    --     local player_index = player.index
+    --     local player_position = player.position
+    --     local player_surface_key = player_index .. "_" .. surface_index
+    --     if synced_player_ids[player_index] then player_surface_key = "synced_" .. surface_index end
+    --     -- local scale = scale_and_intensity.scale
+    --     local scale = light_scale
+    --     -- local intensity = 
+    --     local intensity = 0.1
+    --     local step_length = 8 * 2
+    --     -- local steps = 128 / step_length
+    --     local steps = step_count / step_length
+    --     -- local quad_positions = get_surrounding_quad_positions(player_position)
+    --     local quad_positions = get_surrounding_chunk_positions(player_position, steps, step_length)
+    --     for _, quad_position in pairs(quad_positions) do
+    --         local x = quad_position.x
+    --         local y = quad_position.y
+    --         local quad_uuid = format("%s, %d, %d", player_surface_key, x, y)
+    --         if draw_rectangles then
+    --             draw_text(surface, quad_position, quad_uuid, {r = 1, g = 0, b = 0, a = 1}, 3)
+    --         end
+    --         local quad_has_existing_light = false
+    --         local quad_has_no_trees = false
+    --         local quad_data = nil
+    --         if quads_with_lights_by_uuid and quads_with_lights_by_uuid[quad_uuid] then
+    --             quad_has_existing_light = true
+    --             quad_data = quads_with_lights_by_uuid[quad_uuid]
+    --         end
+    --         if quads_with_no_trees_by_uuid and quads_with_no_trees_by_uuid[quad_uuid] then
+    --             quad_has_no_trees = true
+    --             quad_data = quads_with_no_trees_by_uuid[quad_uuid]
+    --         end
+    --         local quad_is_new = not quad_has_existing_light and not quad_has_no_trees
+    --         local quad_with_light_needs_update = quad_has_existing_light and (quad_data.expire_tick < event.tick + 60)
+    --         local quad_with_no_trees_needs_update = quad_has_no_trees and (quad_data.expire_tick < event.tick + 60)
+    --         if quad_is_new then
+    --             if not surface.is_chunk_generated({x / 32, y / 32}) then
+    --                 if draw_rectangles then
+    --                     draw_text(surface, {x, y + 2}, "not generated", {r = 1, g = 0.5, b = 0.5, a = 1}, 3, event.nth_tick + 10)
+    --                 end
+    --                 goto next_quad
+    --             end
+    --         end
+    --         if quad_with_light_needs_update then
+    --             if quad_data.expire_tick < event.tick + 60 then
+    --                 local modified_time_to_live = time_to_live + random(1, 120)
+    --                 rendering.set_time_to_live(quad_data.light, modified_time_to_live)
+    --                 quads_with_no_trees_by_uuid[quad_uuid] = nil
+    --                 quads_with_lights_by_uuid[quad_uuid].expire_tick = event.tick + modified_time_to_live
+    --                 if draw_rectangles then
+    --                     draw_rectangle(surface, get_area_of_quad(quad_position, step_length), {r = 0, g = 0, b = 1, a = 1})
+    --                 end
+    --             end
+    --         elseif quad_with_no_trees_needs_update or quad_is_new then
+    --             local area = get_area_of_quad(quad_position, step_length)
+    --             local trees = surface.find_entities_filtered{
+    --                 area = area,
+    --                 type = "tree",
+    --             }
+    --             local number_of_trees = #trees
+    --             if number_of_trees > 1 then
+    --                 local quad_midpoint = get_middle_of_quad(quad_position, step_length)
+    --                 local tree_positions = {}
+    --                 for count, tree in pairs(trees) do
+    --                     insert(tree_positions, tree.position)
+    --                     if not (count % 5) then insert(tree_positions, quad_midpoint) end
+    --                 end
+    --                 insert(tree_positions, quad_midpoint)
+    --                 local average_tree_position = average_position(tree_positions)
+    --                 local modified_time_to_live = time_to_live + random(1, 120)
+
+    --                 local frequency = 0.0125
+    --                 local color = color_modes[color_mode](x, y, number_of_trees, frequency, surface)
+
+    --                 color = normalize_color(color, brightness_value)
+
+    --                 -- local intensity = scale_and_intensity.intensity + normalize_value(number_of_trees, 1, 32)
+    --                 intensity = 0.4 + min(normalize_value(number_of_trees, 1, 32), 0.6)
+    --                 -- local intensity = (scale_and_intensity.intensity + (number_of_trees / 256 * steps))
+
+    --                 local players = {player}
+    --                 if synced_player_ids[player_index] then players = synced_players end
+
+    --                 local light = rendering.draw_light{
+    --                     sprite = "utility/light_medium",
+    --                     scale = scale,
+    --                     intensity = intensity,
+    --                     -- intensity = (scale_and_intensity.intensity + (number_of_trees / 256 * steps)),
+    --                     -- intensity = (scale_and_intensity.intensity + (number_of_trees / 512 * steps)),
+    --                     -- intensity = (scale_and_intensity.intensity + (number_of_trees / 1024 * steps)),
+    --                     color = color,
+    --                     target = average_tree_position,
+    --                     surface = surface,
+    --                     time_to_live = modified_time_to_live,
+    --                     players = players,
+    --                 }
+    --                 quads_with_no_trees_by_uuid[quad_uuid] = nil
+    --                 quads_with_lights_by_uuid[quad_uuid] = {
+    --                     expire_tick = event.tick + modified_time_to_live,
+    --                     light = light,
+    --                 }
+    --                 if draw_rectangles then
+    --                     draw_rectangle(surface, area, {r = 1, g = 1, b = 1, a = 1})
+    --                     -- draw_text(surface, average_tree_position, number_of_trees, {r = 1, g = 1, b = 1, a = 1}, 10)
+    --                     -- draw_text(surface, average_tree_position, floor(anchor * 10), {r = 1, g = 1, b = 1, a = 1}, 10)
+    --                     draw_text(surface, average_tree_position, round(intensity, 3), color, 5)
+    --                 end
+    --             else
+    --                 quads_with_lights_by_uuid[quad_uuid] = nil
+    --                 quads_with_no_trees_by_uuid[quad_uuid] = {
+    --                     expire_tick = event.tick + floor((time_to_live + random(1, 120)) * 1.25),
+    --                 }
+    --                 if draw_rectangles then
+    --                     draw_rectangle(surface, area, {r = 0, g = 1, b = 0, a = 1})
+    --                 end
+    --             end
+    --         end
+    --         ::next_quad::
+    --     end
+    --     ::next_player::
+    -- end
 end
 
 local function mod_settings_changed()
