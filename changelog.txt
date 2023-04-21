@@ -1,4 +1,9 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.0.3
+Date: 21APR2023
+  Changes:
+    - all players with synced settings share renderings and can now see eachothers glow auras
+---------------------------------------------------------------------------------------------------
 Version: 0.0.2
 Date: 20APR2023
   Changes:

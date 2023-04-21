@@ -710,6 +710,7 @@ local function on_nth_tick(event)
     global.quads_with_no_trees_by_uuid = global.quads_with_no_trees_by_uuid or {}
     local quads_with_no_trees_by_uuid = global.quads_with_no_trees_by_uuid
     local game_settings = settings.global
+    local connected_players = game.connected_players
     for uuid, quad_data in pairs(quads_with_lights_by_uuid) do
         local expire_tick = quad_data.expire_tick
         if expire_tick <= event.tick then
@@ -722,7 +723,19 @@ local function on_nth_tick(event)
             quads_with_no_trees_by_uuid[uuid] = nil
         end
     end
-    for _, player in pairs(game.connected_players) do
+    local synced_players = {}
+    local synced_player_ids = {}
+    for _, player in pairs(connected_players) do
+        local player_settings = player.mod_settings
+        if player_settings["glow_aura_scale"].value == "sync"
+        and player_settings["glow_aura_color_mode"].value == "sync"
+        and player_settings["glow_aura_brightness"].value == "sync"
+        and player_settings["glow_aura_step_count"].value == "sync" then
+            insert(synced_players, player)
+            synced_player_ids[player.index] = true
+        end
+    end
+    for _, player in pairs(connected_players) do
         local mod_settings = player.mod_settings
         local light_scale = light_scales[mod_settings["glow_aura_scale"].value]
         local color_mode = mod_settings["glow_aura_color_mode"].value
@@ -738,6 +751,7 @@ local function on_nth_tick(event)
         local player_index = player.index
         local player_position = player.position
         local player_surface_key = player_index .. "_" .. surface_index
+        if synced_player_ids[player_index] then player_surface_key = "synced_" .. surface_index end
         -- local scale = scale_and_intensity.scale
         local scale = light_scale
         -- local intensity = 
@@ -813,6 +827,9 @@ local function on_nth_tick(event)
                     intensity = 0.4 + min(normalize_value(number_of_trees, 1, 32), 0.6)
                     -- local intensity = (scale_and_intensity.intensity + (number_of_trees / 256 * steps))
 
+                    local players = {player}
+                    if synced_player_ids[player_index] then players = synced_players end
+
                     local light = rendering.draw_light{
                         sprite = "utility/light_medium",
                         scale = scale,
@@ -824,7 +841,7 @@ local function on_nth_tick(event)
                         target = average_tree_position,
                         surface = surface,
                         time_to_live = modified_time_to_live,
-                        players = {player},
+                        players = players,
                     }
                     quads_with_no_trees_by_uuid[quad_uuid] = nil
                     quads_with_lights_by_uuid[quad_uuid] = {
