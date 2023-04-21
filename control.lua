@@ -818,10 +818,10 @@ local function unique_groups(connected_players)
     local game_settings = settings.global
     for _, player in pairs(connected_players) do
         local mod_settings = player.mod_settings
-        local light_scale = mod_settings["glow_aura_scale"].value
+        local light_scale = light_scales[mod_settings["glow_aura_scale"].value]
         local color_mode = mod_settings["glow_aura_color_mode"].value
-        local brightness_value = mod_settings["glow_aura_brightness"].value
-        local step_count = mod_settings["glow_aura_step_count"].value
+        local brightness_value = brightness[mod_settings["glow_aura_brightness"].value]
+        local step_count = step_counts[mod_settings["glow_aura_step_count"].value]
         -- local group_name = format("%s_%s_%s_%s", light_scale, color_mode, brightness_value, step_count)
         if light_scale == "sync" then light_scale = light_scales[game_settings["global_glow_aura_scale"].value] end
         if color_mode == "sync" then color_mode = game_settings["global_glow_aura_color_mode"].value end

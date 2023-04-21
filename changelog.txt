@@ -1,4 +1,9 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.0.4
+Date: 21APR2023
+  Changes:
+    - resolved error [bad argument to 'format'] when per-player mod settings were different from map settings
+---------------------------------------------------------------------------------------------------
 Version: 0.0.3
 Date: 21APR2023
   Changes:
