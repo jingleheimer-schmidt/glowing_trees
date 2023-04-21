@@ -1,4 +1,11 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.0.2
+Date: 20APR2023
+  Changes:
+    - added map settings so admins can set default mod settings for players on the map
+    - per-player mod settings now sync to map settings by default
+    - renamed "Glow aura render radius" to "Render radius"
+---------------------------------------------------------------------------------------------------
 Version: 0.0.1
 Date: 20APR2023
   Changes:

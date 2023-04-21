@@ -91,8 +91,9 @@ local glow_scale = {
     type = "string-setting",
     name = "glow_aura_scale",
     setting_type = "runtime-per-user",
-    default_value = "large",
+    default_value = "sync",
     allowed_values = {
+        "sync",
         "tiny",
         "small",
         "medium",
@@ -107,8 +108,9 @@ local color_mode = {
     type = "string-setting",
     name = "glow_aura_color_mode",
     setting_type = "runtime-per-user",
-    default_value = "surrounding biome",
+    default_value = "sync",
     allowed_values = {
+        "sync",
         "none",
         "surrounding biome",
         "tree density",
@@ -125,8 +127,9 @@ local brightness = {
     type = "string-setting",
     name = "glow_aura_brightness",
     setting_type = "runtime-per-user",
-    default_value = "medium",
+    default_value = "sync",
     allowed_values = {
+        "sync",
         "minimum",
         "very low",
         "low",
@@ -142,8 +145,9 @@ local step_count = {
     type = "string-setting",
     name = "glow_aura_step_count",
     setting_type = "runtime-per-user",
-    default_value = "medium",
+    default_value = "sync",
     allowed_values = {
+        "sync",
         "small",
         "medium",
         "large",
@@ -157,4 +161,76 @@ data:extend({
     color_mode,
     brightness,
     step_count,
+})
+
+local global_glow_scale = {
+    type = "string-setting",
+    name = "global_glow_aura_scale",
+    setting_type = "runtime-global",
+    default_value = "large",
+    allowed_values = {
+        "tiny",
+        "small",
+        "medium",
+        "large",
+        "huge",
+        "enormous",
+    },
+    order = "a-2"
+}
+
+local global_color_mode = {
+    type = "string-setting",
+    name = "global_glow_aura_color_mode",
+    setting_type = "runtime-global",
+    default_value = "surrounding biome",
+    allowed_values = {
+        "none",
+        "surrounding biome",
+        "tree density",
+        "biome plus density",
+        "horizontal rainbow stripes",
+        "vertical rainbow stripes",
+        "diagonal rainbow stripes",
+        "lissajous rainbow",
+    },
+    order = "a-1"
+}
+
+local global_brightness = {
+    type = "string-setting",
+    name = "global_glow_aura_brightness",
+    setting_type = "runtime-global",
+    default_value = "medium",
+    allowed_values = {
+        "minimum",
+        "very low",
+        "low",
+        "medium",
+        "high",
+        "very high",
+        "maximum",
+    },
+    order = "a-3"
+}
+
+local global_step_count = {
+    type = "string-setting",
+    name = "global_glow_aura_step_count",
+    setting_type = "runtime-global",
+    default_value = "medium",
+    allowed_values = {
+        "small",
+        "medium",
+        "large",
+        "huge",
+    },
+    order = "a-4"
+}
+
+data:extend({
+    global_glow_scale,
+    global_color_mode,
+    global_brightness,
+    global_step_count,
 })

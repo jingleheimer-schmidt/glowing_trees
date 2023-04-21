@@ -43,7 +43,18 @@ local light_scale_and_intensity = {
     ["enormous"] = {scale = 10, intensity = 0.1},
 }
 
+local light_scales = {
+    ["sync"] = "sync",
+    ["tiny"] = 4,
+    ["small"] = 4.5,
+    ["medium"] = 5,
+    ["large"] = 6,
+    ["huge"] = 7.5,
+    ["enormous"] = 10,
+}
+
 local brightness = {
+    ["sync"] = "sync",
     ["minimum"] = 0.05,
     ["very low"] = 0.1,
     ["low"] = 0.15,
@@ -54,6 +65,7 @@ local brightness = {
 }
 
 local step_counts = {
+    ["sync"] = "sync",
     ["small"] = 96,
     ["medium"] = 128,
     ["large"] = 192,
@@ -697,6 +709,7 @@ local function on_nth_tick(event)
     local quads_with_lights_by_uuid = global.quads_with_lights_by_uuid
     global.quads_with_no_trees_by_uuid = global.quads_with_no_trees_by_uuid or {}
     local quads_with_no_trees_by_uuid = global.quads_with_no_trees_by_uuid
+    local game_settings = settings.global
     for uuid, quad_data in pairs(quads_with_lights_by_uuid) do
         local expire_tick = quad_data.expire_tick
         if expire_tick <= event.tick then
@@ -711,18 +724,24 @@ local function on_nth_tick(event)
     end
     for _, player in pairs(game.connected_players) do
         local mod_settings = player.mod_settings
-        local scale_and_intensity = light_scale_and_intensity[mod_settings["glow_aura_scale"].value]
+        local light_scale = light_scales[mod_settings["glow_aura_scale"].value]
         local color_mode = mod_settings["glow_aura_color_mode"].value
         local brightness_value = brightness[mod_settings["glow_aura_brightness"].value]
         local step_count = step_counts[mod_settings["glow_aura_step_count"].value]
-        if color_mode == "none" then break end
+        if light_scale == "sync" then light_scale = light_scales[game_settings["global_glow_aura_scale"].value] end
+        if color_mode == "sync" then color_mode = game_settings["global_glow_aura_color_mode"].value end
+        if brightness_value == "sync" then brightness_value = brightness[game_settings["global_glow_aura_brightness"].value] end
+        if step_count == "sync" then step_count = step_counts[game_settings["global_glow_aura_step_count"].value] end
+        if color_mode == "none" then goto next_player end
         local surface = player.surface
         local surface_index = surface.index
         local player_index = player.index
         local player_position = player.position
         local player_surface_key = player_index .. "_" .. surface_index
-        local scale = scale_and_intensity.scale
-        local intensity = scale_and_intensity.intensity
+        -- local scale = scale_and_intensity.scale
+        local scale = light_scale
+        -- local intensity = 
+        local intensity = 0.1
         local step_length = 8 * 2
         -- local steps = 128 / step_length
         local steps = step_count / step_length
@@ -752,7 +771,7 @@ local function on_nth_tick(event)
             if quad_is_new then
                 if not surface.is_chunk_generated({x / 32, y / 32}) then
                     if draw_rectangles then
-                        draw_text(surface, {x, y + 2}, "\nnot generated", {r = 1, g = 0.5, b = 0.5, a = 1}, 3, event.nth_tick + 10)
+                        draw_text(surface, {x, y + 2}, "not generated", {r = 1, g = 0.5, b = 0.5, a = 1}, 3, event.nth_tick + 10)
                     end
                     goto next_quad
                 end
@@ -830,6 +849,7 @@ local function on_nth_tick(event)
             end
             ::next_quad::
         end
+        ::next_player::
     end
 end
 
