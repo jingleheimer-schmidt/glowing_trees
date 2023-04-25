@@ -118,6 +118,7 @@ local color_mode = {
         "horizontal rainbow stripes",
         "vertical rainbow stripes",
         "diagonal rainbow stripes",
+        "concentric rainbow circles",
         "lissajous rainbow",
     },
     order = "a-1"
@@ -192,6 +193,7 @@ local global_color_mode = {
         "horizontal rainbow stripes",
         "vertical rainbow stripes",
         "diagonal rainbow stripes",
+        "concentric rainbow circles",
         "lissajous rainbow",
     },
     order = "a-1"

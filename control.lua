@@ -239,6 +239,12 @@ local function biome_plus_density(x, y, anchor, frequency, surface)
     }
 end
 
+local function concentric_rainbow(x, y, anchor, frequency, surface)
+    local distance_from_origin = math.sqrt(x * x + y * y)
+    -- anchor = distance_from_origin * 0.1
+    return rainbow_color(x, y, distance_from_origin, frequency, surface)
+end
+
 local color_modes = {
     ["surrounding biome"] = surrounding_biome_color,
     ["tree density"] = tree_density_color,
@@ -247,6 +253,7 @@ local color_modes = {
     ["horizontal rainbow stripes"] = horizonal_rainbow,
     ["biome plus density"] = biome_plus_density,
     ["vertical rainbow stripes"] = vertical_rainbow,
+    ["concentric rainbow circles"] = concentric_rainbow,
 }
 
 local function average_color(colors)
