@@ -6,42 +6,8 @@ local floor = math.floor
 local sin = math.sin
 local cos = math.cos
 local min = math.min
-
-local glow_scales = {
-    ["tiny"] = 0.5,
-    ["small"] = 1,
-    ["medium"] = 2.5,
-    ["large"] = 4,
-    ["huge"] = 6,
-    ["enormous"] = 9,
-}
-
-local glow_chance_percents = {
-    ["none"] = 0,
-    ["few"] = 0.125,
-    ["some"] = 0.25,
-    ["half"] = 0.5,
-    ["most"] = 0.75,
-    ["all"] = 1,
-}
-
--- local light_scale_and_intensity = {
---     ["tiny"] = {scale = 3, intensity = 0.3},
---     ["small"] = {scale = 4, intensity = 0.25},
---     ["medium"] = {scale = 5, intensity = 0.2},
---     ["large"] = {scale = 6.5, intensity = 0.1},
---     ["huge"] = {scale = 8, intensity = 0.001},
---     ["enormous"] = {scale = 10, intensity = 0.0001},
--- }
-
-local light_scale_and_intensity = {
-    ["tiny"] = {scale = 4, intensity = 0.1},
-    ["small"] = {scale = 4.5, intensity = 0.1},
-    ["medium"] = {scale = 5, intensity = 0.1},
-    ["large"] = {scale = 6, intensity = 0.1},
-    ["huge"] = {scale = 7.5, intensity = 0.1},
-    ["enormous"] = {scale = 10, intensity = 0.1},
-}
+local max = math.max
+local sqrt = math.sqrt
 
 local light_scales = {
     ["sync"] = "sync",
@@ -73,47 +39,41 @@ local step_counts = {
 }
 
 local function rgba_to_hsva(r, g, b, a)
-    local max = math.max(r, g, b)
-    local min = math.min(r, g, b)
+    local maximum = max(r, g, b)
+    local minimum = min(r, g, b)
     local h, s, v
-
-    v = max
-
-    local d = max - min
-    if max == 0 then
+    v = maximum
+    local d = maximum - minimum
+    if maximum == 0 then
         s = 0
     else
-        s = d / max
+        s = d / maximum
     end
-
-    if max == min then
+    if maximum == minimum then
         h = 0
     else
-        if max == r then
+        if maximum == r then
             h = (g - b) / d
             if g < b then
                 h = h + 6
             end
-        elseif max == g then
+        elseif maximum == g then
             h = (b - r) / d + 2
-        elseif max == b then
+        elseif maximum == b then
             h = (r - g) / d + 4
         end
         h = h * 60
     end
-
     return h, s, v, a
 end
 
 local function hsva_to_rgba(h, s, v, a)
     local r, g, b
-
     local i = math.floor(h / 60)
     local f = h / 60 - i
     local p = v * (1 - s)
     local q = v * (1 - f * s)
     local t = v * (1 - (1 - f) * s)
-
     if i == 0 then
         r, g, b = v, t, p
     elseif i == 1 then
@@ -127,7 +87,6 @@ local function hsva_to_rgba(h, s, v, a)
     else
         r, g, b = v, p, q
     end
-
     return r, g, b, a
 end
 
@@ -240,8 +199,8 @@ local function biome_plus_density(x, y, anchor, frequency, surface)
 end
 
 local function concentric_rainbow(x, y, anchor, frequency, surface)
-    local distance_from_origin = math.sqrt(x * x + y * y)
-    -- anchor = distance_from_origin * 0.1
+    local distance_from_origin = sqrt(x * x + y * y)
+    frequency = 0.25
     return rainbow_color(x, y, distance_from_origin, frequency, surface)
 end
 
@@ -257,10 +216,7 @@ local color_modes = {
 }
 
 local function average_color(colors)
-    local r = 0
-    local g = 0
-    local b = 0
-    local a = 0
+    local r, g, b, a = 0, 0, 0, 0
     for _, color in pairs(colors) do
         r = r + color.r
         g = g + color.g
@@ -298,374 +254,6 @@ local function average_tree_color_index(trees)
     end
     return math.floor(color_index / #trees)
 end
-
--- local function get_surrounding_quad_positions(position)
---     local floor = math.floor
---     local step_length = 16
---     local pos_x = floor(position.x / step_length)
---     local pos_y = floor(position.y / step_length)
---     local x_min_8 = (pos_x - 8) * step_length
---     local y_min_8 = (pos_y - 8) * step_length
---     local x_min_7 = (pos_x - 7) * step_length
---     local y_min_7 = (pos_y - 7) * step_length
---     local x_min_6 = (pos_x - 6) * step_length
---     local y_min_6 = (pos_y - 6) * step_length
---     local x_min_5 = (pos_x - 5) * step_length
---     local y_min_5 = (pos_y - 5) * step_length
---     local x_min_4 = (pos_x - 4) * step_length
---     local y_min_4 = (pos_y - 4) * step_length
---     local x_min_3 = (pos_x - 3) * step_length
---     local y_min_3 = (pos_y - 3) * step_length
---     local x_min_2 = (pos_x - 2) * step_length
---     local y_min_2 = (pos_y - 2) * step_length
---     local x_min_1 = (pos_x - 1) * step_length
---     local y_min_1 = (pos_y - 1) * step_length
---     local x_0 = (pos_x) * step_length
---     local y_0 = (pos_y) * step_length
---     local x_add_1 = (pos_x + 1) * step_length
---     local y_add_1 = (pos_y + 1) * step_length
---     local x_add_2 = (pos_x + 2) * step_length
---     local y_add_2 = (pos_y + 2) * step_length
---     local x_add_3 = (pos_x + 3) * step_length
---     local y_add_3 = (pos_y + 3) * step_length
---     local x_add_4 = (pos_x + 4) * step_length
---     local y_add_4 = (pos_y + 4) * step_length
---     local x_add_5 = (pos_x + 5) * step_length
---     local y_add_5 = (pos_y + 5) * step_length
---     local x_add_6 = (pos_x + 6) * step_length
---     local y_add_6 = (pos_y + 6) * step_length
---     local x_add_7 = (pos_x + 7) * step_length
---     local y_add_7 = (pos_y + 7) * step_length
---     local x_add_8 = (pos_x + 8) * step_length
---     local y_add_8 = (pos_y + 8) * step_length
---     local quads = {
---         {x = x_min_8, y = y_min_8},
---         {x = x_min_7, y = y_min_8},
---         {x = x_min_6, y = y_min_8},
---         {x = x_min_5, y = y_min_8},
---         {x = x_min_4, y = y_min_8},
---         {x = x_min_3, y = y_min_8},
---         {x = x_min_2, y = y_min_8},
---         {x = x_min_1, y = y_min_8},
---         {x = x_0, y = y_min_8},
---         {x = x_add_1, y = y_min_8},
---         {x = x_add_2, y = y_min_8},
---         {x = x_add_3, y = y_min_8},
---         {x = x_add_4, y = y_min_8},
---         {x = x_add_5, y = y_min_8},
---         {x = x_add_6, y = y_min_8},
---         {x = x_add_7, y = y_min_8},
---         {x = x_add_8, y = y_min_8},
---         {x = x_min_8, y = y_min_7},
---         {x = x_min_7, y = y_min_7},
---         {x = x_min_6, y = y_min_7},
---         {x = x_min_5, y = y_min_7},
---         {x = x_min_4, y = y_min_7},
---         {x = x_min_3, y = y_min_7},
---         {x = x_min_2, y = y_min_7},
---         {x = x_min_1, y = y_min_7},
---         {x = x_0, y = y_min_7},
---         {x = x_add_1, y = y_min_7},
---         {x = x_add_2, y = y_min_7},
---         {x = x_add_3, y = y_min_7},
---         {x = x_add_4, y = y_min_7},
---         {x = x_add_5, y = y_min_7},
---         {x = x_add_6, y = y_min_7},
---         {x = x_add_7, y = y_min_7},
---         {x = x_add_8, y = y_min_7},
---         {x = x_min_8, y = y_min_6},
---         {x = x_min_7, y = y_min_6},
---         {x = x_min_6, y = y_min_6},
---         {x = x_min_5, y = y_min_6},
---         {x = x_min_4, y = y_min_6},
---         {x = x_min_3, y = y_min_6},
---         {x = x_min_2, y = y_min_6},
---         {x = x_min_1, y = y_min_6},
---         {x = x_0, y = y_min_6},
---         {x = x_add_1, y = y_min_6},
---         {x = x_add_2, y = y_min_6},
---         {x = x_add_3, y = y_min_6},
---         {x = x_add_4, y = y_min_6},
---         {x = x_add_5, y = y_min_6},
---         {x = x_add_6, y = y_min_6},
---         {x = x_add_7, y = y_min_6},
---         {x = x_add_8, y = y_min_6},
---         {x = x_min_8, y = y_min_5},
---         {x = x_min_7, y = y_min_5},
---         {x = x_min_6, y = y_min_5},
---         {x = x_min_5, y = y_min_5},
---         {x = x_min_4, y = y_min_5},
---         {x = x_min_3, y = y_min_5},
---         {x = x_min_2, y = y_min_5},
---         {x = x_min_1, y = y_min_5},
---         {x = x_0, y = y_min_5},
---         {x = x_add_1, y = y_min_5},
---         {x = x_add_2, y = y_min_5},
---         {x = x_add_3, y = y_min_5},
---         {x = x_add_4, y = y_min_5},
---         {x = x_add_5, y = y_min_5},
---         {x = x_add_6, y = y_min_5},
---         {x = x_add_7, y = y_min_5},
---         {x = x_add_8, y = y_min_5},
---         {x = x_min_8, y = y_min_4},
---         {x = x_min_7, y = y_min_4},
---         {x = x_min_6, y = y_min_4},
---         {x = x_min_5, y = y_min_4},
---         {x = x_min_4, y = y_min_4},
---         {x = x_min_3, y = y_min_4},
---         {x = x_min_2, y = y_min_4},
---         {x = x_min_1, y = y_min_4},
---         {x = x_0, y = y_min_4},
---         {x = x_add_1, y = y_min_4},
---         {x = x_add_2, y = y_min_4},
---         {x = x_add_3, y = y_min_4},
---         {x = x_add_4, y = y_min_4},
---         {x = x_add_5, y = y_min_4},
---         {x = x_add_6, y = y_min_4},
---         {x = x_add_7, y = y_min_4},
---         {x = x_add_8, y = y_min_4},
---         {x = x_min_8, y = y_min_3},
---         {x = x_min_7, y = y_min_3},
---         {x = x_min_6, y = y_min_3},
---         {x = x_min_5, y = y_min_3},
---         {x = x_min_4, y = y_min_3},
---         {x = x_min_3, y = y_min_3},
---         {x = x_min_2, y = y_min_3},
---         {x = x_min_1, y = y_min_3},
---         {x = x_0, y = y_min_3},
---         {x = x_add_1, y = y_min_3},
---         {x = x_add_2, y = y_min_3},
---         {x = x_add_3, y = y_min_3},
---         {x = x_add_4, y = y_min_3},
---         {x = x_add_5, y = y_min_3},
---         {x = x_add_6, y = y_min_3},
---         {x = x_add_7, y = y_min_3},
---         {x = x_add_8, y = y_min_3},
---         {x = x_min_8, y = y_min_2},
---         {x = x_min_7, y = y_min_2},
---         {x = x_min_6, y = y_min_2},
---         {x = x_min_5, y = y_min_2},
---         {x = x_min_4, y = y_min_2},
---         {x = x_min_3, y = y_min_2},
---         {x = x_min_2, y = y_min_2},
---         {x = x_min_1, y = y_min_2},
---         {x = x_0, y = y_min_2},
---         {x = x_add_1, y = y_min_2},
---         {x = x_add_2, y = y_min_2},
---         {x = x_add_3, y = y_min_2},
---         {x = x_add_4, y = y_min_2},
---         {x = x_add_5, y = y_min_2},
---         {x = x_add_6, y = y_min_2},
---         {x = x_add_7, y = y_min_2},
---         {x = x_add_8, y = y_min_2},
---         {x = x_min_8, y = y_min_1},
---         {x = x_min_7, y = y_min_1},
---         {x = x_min_6, y = y_min_1},
---         {x = x_min_5, y = y_min_1},
---         {x = x_min_4, y = y_min_1},
---         {x = x_min_3, y = y_min_1},
---         {x = x_min_2, y = y_min_1},
---         {x = x_min_1, y = y_min_1},
---         {x = x_0, y = y_min_1},
---         {x = x_add_1, y = y_min_1},
---         {x = x_add_2, y = y_min_1},
---         {x = x_add_3, y = y_min_1},
---         {x = x_add_4, y = y_min_1},
---         {x = x_add_5, y = y_min_1},
---         {x = x_add_6, y = y_min_1},
---         {x = x_add_7, y = y_min_1},
---         {x = x_add_8, y = y_min_1},
---         {x = x_min_8, y = y_0},
---         {x = x_min_7, y = y_0},
---         {x = x_min_6, y = y_0},
---         {x = x_min_5, y = y_0},
---         {x = x_min_4, y = y_0},
---         {x = x_min_3, y = y_0},
---         {x = x_min_2, y = y_0},
---         {x = x_min_1, y = y_0},
---         {x = x_0, y = y_0},
---         {x = x_add_1, y = y_0},
---         {x = x_add_2, y = y_0},
---         {x = x_add_3, y = y_0},
---         {x = x_add_4, y = y_0},
---         {x = x_add_5, y = y_0},
---         {x = x_add_6, y = y_0},
---         {x = x_add_7, y = y_0},
---         {x = x_add_8, y = y_0},
---         {x = x_min_8, y = y_add_1},
---         {x = x_min_7, y = y_add_1},
---         {x = x_min_6, y = y_add_1},
---         {x = x_min_5, y = y_add_1},
---         {x = x_min_4, y = y_add_1},
---         {x = x_min_3, y = y_add_1},
---         {x = x_min_2, y = y_add_1},
---         {x = x_min_1, y = y_add_1},
---         {x = x_0, y = y_add_1},
---         {x = x_add_1, y = y_add_1},
---         {x = x_add_2, y = y_add_1},
---         {x = x_add_3, y = y_add_1},
---         {x = x_add_4, y = y_add_1},
---         {x = x_add_5, y = y_add_1},
---         {x = x_add_6, y = y_add_1},
---         {x = x_add_7, y = y_add_1},
---         {x = x_add_8, y = y_add_1},
---         {x = x_min_8, y = y_add_2},
---         {x = x_min_7, y = y_add_2},
---         {x = x_min_6, y = y_add_2},
---         {x = x_min_5, y = y_add_2},
---         {x = x_min_4, y = y_add_2},
---         {x = x_min_3, y = y_add_2},
---         {x = x_min_2, y = y_add_2},
---         {x = x_min_1, y = y_add_2},
---         {x = x_0, y = y_add_2},
---         {x = x_add_1, y = y_add_2},
---         {x = x_add_2, y = y_add_2},
---         {x = x_add_3, y = y_add_2},
---         {x = x_add_4, y = y_add_2},
---         {x = x_add_5, y = y_add_2},
---         {x = x_add_6, y = y_add_2},
---         {x = x_add_7, y = y_add_2},
---         {x = x_add_8, y = y_add_2},
---         {x = x_min_8, y = y_add_3},
---         {x = x_min_7, y = y_add_3},
---         {x = x_min_6, y = y_add_3},
---         {x = x_min_5, y = y_add_3},
---         {x = x_min_4, y = y_add_3},
---         {x = x_min_3, y = y_add_3},
---         {x = x_min_2, y = y_add_3},
---         {x = x_min_1, y = y_add_3},
---         {x = x_0, y = y_add_3},
---         {x = x_add_1, y = y_add_3},
---         {x = x_add_2, y = y_add_3},
---         {x = x_add_3, y = y_add_3},
---         {x = x_add_4, y = y_add_3},
---         {x = x_add_5, y = y_add_3},
---         {x = x_add_6, y = y_add_3},
---         {x = x_add_7, y = y_add_3},
---         {x = x_add_8, y = y_add_3},
---         {x = x_min_8, y = y_add_4},
---         {x = x_min_7, y = y_add_4},
---         {x = x_min_6, y = y_add_4},
---         {x = x_min_5, y = y_add_4},
---         {x = x_min_4, y = y_add_4},
---         {x = x_min_3, y = y_add_4},
---         {x = x_min_2, y = y_add_4},
---         {x = x_min_1, y = y_add_4},
---         {x = x_0, y = y_add_4},
---         {x = x_add_1, y = y_add_4},
---         {x = x_add_2, y = y_add_4},
---         {x = x_add_3, y = y_add_4},
---         {x = x_add_4, y = y_add_4},
---         {x = x_add_5, y = y_add_4},
---         {x = x_add_6, y = y_add_4},
---         {x = x_add_7, y = y_add_4},
---         {x = x_add_8, y = y_add_4},
---         {x = x_min_8, y = y_add_5},
---         {x = x_min_7, y = y_add_5},
---         {x = x_min_6, y = y_add_5},
---         {x = x_min_5, y = y_add_5},
---         {x = x_min_4, y = y_add_5},
---         {x = x_min_3, y = y_add_5},
---         {x = x_min_2, y = y_add_5},
---         {x = x_min_1, y = y_add_5},
---         {x = x_0, y = y_add_5},
---         {x = x_add_1, y = y_add_5},
---         {x = x_add_2, y = y_add_5},
---         {x = x_add_3, y = y_add_5},
---         {x = x_add_4, y = y_add_5},
---         {x = x_add_5, y = y_add_5},
---         {x = x_add_6, y = y_add_5},
---         {x = x_add_7, y = y_add_5},
---         {x = x_add_8, y = y_add_5},
---         {x = x_min_8, y = y_add_6},
---         {x = x_min_7, y = y_add_6},
---         {x = x_min_6, y = y_add_6},
---         {x = x_min_5, y = y_add_6},
---         {x = x_min_4, y = y_add_6},
---         {x = x_min_3, y = y_add_6},
---         {x = x_min_2, y = y_add_6},
---         {x = x_min_1, y = y_add_6},
---         {x = x_0, y = y_add_6},
---         {x = x_add_1, y = y_add_6},
---         {x = x_add_2, y = y_add_6},
---         {x = x_add_3, y = y_add_6},
---         {x = x_add_4, y = y_add_6},
---         {x = x_add_5, y = y_add_6},
---         {x = x_add_6, y = y_add_6},
---         {x = x_add_7, y = y_add_6},
---         {x = x_add_8, y = y_add_6},
---         {x = x_min_8, y = y_add_7},
---         {x = x_min_7, y = y_add_7},
---         {x = x_min_6, y = y_add_7},
---         {x = x_min_5, y = y_add_7},
---         {x = x_min_4, y = y_add_7},
---         {x = x_min_3, y = y_add_7},
---         {x = x_min_2, y = y_add_7},
---         {x = x_min_1, y = y_add_7},
---         {x = x_0, y = y_add_7},
---         {x = x_add_1, y = y_add_7},
---         {x = x_add_2, y = y_add_7},
---         {x = x_add_3, y = y_add_7},
---         {x = x_add_4, y = y_add_7},
---         {x = x_add_5, y = y_add_7},
---         {x = x_add_6, y = y_add_7},
---         {x = x_add_7, y = y_add_7},
---         {x = x_add_8, y = y_add_7},
---         {x = x_min_8, y = y_add_8},
---         {x = x_min_7, y = y_add_8},
---         {x = x_min_6, y = y_add_8},
---         {x = x_min_5, y = y_add_8},
---         {x = x_min_4, y = y_add_8},
---         {x = x_min_3, y = y_add_8},
---         {x = x_min_2, y = y_add_8},
---         {x = x_min_1, y = y_add_8},
---         {x = x_0, y = y_add_8},
---         {x = x_add_1, y = y_add_8},
---         {x = x_add_2, y = y_add_8},
---         {x = x_add_3, y = y_add_8},
---         {x = x_add_4, y = y_add_8},
---         {x = x_add_5, y = y_add_8},
---         {x = x_add_6, y = y_add_8},
---         {x = x_add_7, y = y_add_8},
---         {x = x_add_8, y = y_add_8},
---     }
---     return quads
--- end
-
--- local function get_surrounding_chunk_positions(position, steps, step_length)
---     local chunk_position = {
---         x = math.floor(position.x / step_length),
---         y = math.floor(position.y / step_length),
---     }
---     local chunk_positions = {}
---     for x = chunk_position.x - steps, chunk_position.x + steps do
---         for y = chunk_position.y - steps, chunk_position.y + steps do
---             table.insert(chunk_positions, {x = x * step_length, y = y * step_length})
---         end
---     end
---     return chunk_positions
--- end
-
--- local function get_surrounding_chunk_positions(position, steps, step_length)
---     local chunk_position = {
---         x = floor(position.x / step_length),
---         y = floor(position.y / step_length),
---     }
---     local chunk_positions = {}
---     local num_chunks = (2 * steps + 1)^2
---     chunk_positions[num_chunks] = {} -- pre-allocate the table
-
---     for i = 1, num_chunks do
---         local x_offset = floor((i - 1) / (2 * steps + 1)) - steps
---         local y_offset = (i - 1) % (2 * steps + 1) - steps
---         chunk_positions[i] = {
---             x = (chunk_position.x + x_offset) * step_length,
---             y = (chunk_position.y + y_offset) * step_length
---         }
---     end
-
---     return chunk_positions
--- end
 
 local function get_surrounding_chunk_positions(position, steps, step_length)
     local pos_x = floor(position.x / step_length)
@@ -757,6 +345,22 @@ local function get_surrounding_chunk_positions(position, steps, step_length)
         }
     end
 end
+
+--[[
+to generate the huge tables for each step count, run the following command in chat console:
+/c
+local function generatePatternStrings(startX, startY)
+    local patternStrings = {}
+    for y = startY, startY + math.abs(startY) * 2 do
+        for x = startX, startX + math.abs(startX) * 2 do
+        local patternString = "{x = x_" .. (x >= 0 and "add_" or "min_") .. math.abs(x) .. ", y = y_" .. (y >= 0 and "add_" or "min_") .. math.abs(y) .. "},"
+        table.insert(patternStrings, patternString)
+        end
+    end
+    return patternStrings
+end
+log(table.concat(generatePatternStrings(-16, -16)))
+--]]
 
 local function get_area_of_quad(quad_position, quad_size)
     local area = {
@@ -853,14 +457,11 @@ local function on_nth_tick(event)
     local step_length = 16
     local nth_tick = event.nth_tick
     local event_tick = event.tick
-    -- local step_length = 8 * 2
-    -- local steps = 128 / step_length
     local draw_rectangles = global.draw_rectangles or false
     global.quads_with_lights_by_uuid = global.quads_with_lights_by_uuid or {}
     local quads_with_lights_by_uuid = global.quads_with_lights_by_uuid
     global.quads_with_no_trees_by_uuid = global.quads_with_no_trees_by_uuid or {}
     local quads_with_no_trees_by_uuid = global.quads_with_no_trees_by_uuid
-    -- local game_settings = settings.global
     local connected_players = game.connected_players
     for uuid, quad_data in pairs(quads_with_lights_by_uuid) do
         local expire_tick = quad_data.expire_tick
@@ -874,18 +475,6 @@ local function on_nth_tick(event)
             quads_with_no_trees_by_uuid[uuid] = nil
         end
     end
-    -- local synced_players = {}
-    -- local synced_player_ids = {}
-    -- for _, player in pairs(connected_players) do
-    --     local player_settings = player.mod_settings
-    --     if player_settings["glow_aura_scale"].value == "sync"
-    --     and player_settings["glow_aura_color_mode"].value == "sync"
-    --     and player_settings["glow_aura_brightness"].value == "sync"
-    --     and player_settings["glow_aura_step_count"].value == "sync" then
-    --         insert(synced_players, player)
-    --         synced_player_ids[player.index] = true
-    --     end
-    -- end
     local groups = unique_groups(connected_players)
     for group_name, group in pairs(groups) do
         local color_mode = group.color_mode
@@ -898,10 +487,8 @@ local function on_nth_tick(event)
         for _, player in pairs(players) do
             local surface = player.surface
             local surface_index = surface.index
-            -- local player_index = player.index
             local player_position = player.position
             local player_surface_key = format("%s_%d", group_name, surface_index)
-            -- local scale = light_scale
             local quad_positions = get_surrounding_chunk_positions(player_position, steps, step_length)
             for _, quad_position in pairs(quad_positions) do
                 local x = quad_position.x
@@ -1000,139 +587,6 @@ local function on_nth_tick(event)
         end
         ::next_group::
     end
-    -- for _, player in pairs(connected_players) do
-    --     local mod_settings = player.mod_settings
-    --     local light_scale = light_scales[mod_settings["glow_aura_scale"].value]
-    --     local color_mode = mod_settings["glow_aura_color_mode"].value
-    --     local brightness_value = brightness[mod_settings["glow_aura_brightness"].value]
-    --     local step_count = step_counts[mod_settings["glow_aura_step_count"].value]
-    --     if light_scale == "sync" then light_scale = light_scales[game_settings["global_glow_aura_scale"].value] end
-    --     if color_mode == "sync" then color_mode = game_settings["global_glow_aura_color_mode"].value end
-    --     if brightness_value == "sync" then brightness_value = brightness[game_settings["global_glow_aura_brightness"].value] end
-    --     if step_count == "sync" then step_count = step_counts[game_settings["global_glow_aura_step_count"].value] end
-    --     if color_mode == "none" then goto next_player end
-    --     local surface = player.surface
-    --     local surface_index = surface.index
-    --     local player_index = player.index
-    --     local player_position = player.position
-    --     local player_surface_key = player_index .. "_" .. surface_index
-    --     if synced_player_ids[player_index] then player_surface_key = "synced_" .. surface_index end
-    --     -- local scale = scale_and_intensity.scale
-    --     local scale = light_scale
-    --     -- local intensity = 
-    --     local intensity = 0.1
-    --     local step_length = 8 * 2
-    --     -- local steps = 128 / step_length
-    --     local steps = step_count / step_length
-    --     -- local quad_positions = get_surrounding_quad_positions(player_position)
-    --     local quad_positions = get_surrounding_chunk_positions(player_position, steps, step_length)
-    --     for _, quad_position in pairs(quad_positions) do
-    --         local x = quad_position.x
-    --         local y = quad_position.y
-    --         local quad_uuid = format("%s, %d, %d", player_surface_key, x, y)
-    --         if draw_rectangles then
-    --             draw_text(surface, quad_position, quad_uuid, {r = 1, g = 0, b = 0, a = 1}, 3)
-    --         end
-    --         local quad_has_existing_light = false
-    --         local quad_has_no_trees = false
-    --         local quad_data = nil
-    --         if quads_with_lights_by_uuid and quads_with_lights_by_uuid[quad_uuid] then
-    --             quad_has_existing_light = true
-    --             quad_data = quads_with_lights_by_uuid[quad_uuid]
-    --         end
-    --         if quads_with_no_trees_by_uuid and quads_with_no_trees_by_uuid[quad_uuid] then
-    --             quad_has_no_trees = true
-    --             quad_data = quads_with_no_trees_by_uuid[quad_uuid]
-    --         end
-    --         local quad_is_new = not quad_has_existing_light and not quad_has_no_trees
-    --         local quad_with_light_needs_update = quad_has_existing_light and (quad_data.expire_tick < event.tick + 60)
-    --         local quad_with_no_trees_needs_update = quad_has_no_trees and (quad_data.expire_tick < event.tick + 60)
-    --         if quad_is_new then
-    --             if not surface.is_chunk_generated({x / 32, y / 32}) then
-    --                 if draw_rectangles then
-    --                     draw_text(surface, {x, y + 2}, "not generated", {r = 1, g = 0.5, b = 0.5, a = 1}, 3, event.nth_tick + 10)
-    --                 end
-    --                 goto next_quad
-    --             end
-    --         end
-    --         if quad_with_light_needs_update then
-    --             if quad_data.expire_tick < event.tick + 60 then
-    --                 local modified_time_to_live = time_to_live + random(1, 120)
-    --                 rendering.set_time_to_live(quad_data.light, modified_time_to_live)
-    --                 quads_with_no_trees_by_uuid[quad_uuid] = nil
-    --                 quads_with_lights_by_uuid[quad_uuid].expire_tick = event.tick + modified_time_to_live
-    --                 if draw_rectangles then
-    --                     draw_rectangle(surface, get_area_of_quad(quad_position, step_length), {r = 0, g = 0, b = 1, a = 1})
-    --                 end
-    --             end
-    --         elseif quad_with_no_trees_needs_update or quad_is_new then
-    --             local area = get_area_of_quad(quad_position, step_length)
-    --             local trees = surface.find_entities_filtered{
-    --                 area = area,
-    --                 type = "tree",
-    --             }
-    --             local number_of_trees = #trees
-    --             if number_of_trees > 1 then
-    --                 local quad_midpoint = get_middle_of_quad(quad_position, step_length)
-    --                 local tree_positions = {}
-    --                 for count, tree in pairs(trees) do
-    --                     insert(tree_positions, tree.position)
-    --                     if not (count % 5) then insert(tree_positions, quad_midpoint) end
-    --                 end
-    --                 insert(tree_positions, quad_midpoint)
-    --                 local average_tree_position = average_position(tree_positions)
-    --                 local modified_time_to_live = time_to_live + random(1, 120)
-
-    --                 local frequency = 0.0125
-    --                 local color = color_modes[color_mode](x, y, number_of_trees, frequency, surface)
-
-    --                 color = normalize_color(color, brightness_value)
-
-    --                 -- local intensity = scale_and_intensity.intensity + normalize_value(number_of_trees, 1, 32)
-    --                 intensity = 0.4 + min(normalize_value(number_of_trees, 1, 32), 0.6)
-    --                 -- local intensity = (scale_and_intensity.intensity + (number_of_trees / 256 * steps))
-
-    --                 local players = {player}
-    --                 if synced_player_ids[player_index] then players = synced_players end
-
-    --                 local light = rendering.draw_light{
-    --                     sprite = "utility/light_medium",
-    --                     scale = scale,
-    --                     intensity = intensity,
-    --                     -- intensity = (scale_and_intensity.intensity + (number_of_trees / 256 * steps)),
-    --                     -- intensity = (scale_and_intensity.intensity + (number_of_trees / 512 * steps)),
-    --                     -- intensity = (scale_and_intensity.intensity + (number_of_trees / 1024 * steps)),
-    --                     color = color,
-    --                     target = average_tree_position,
-    --                     surface = surface,
-    --                     time_to_live = modified_time_to_live,
-    --                     players = players,
-    --                 }
-    --                 quads_with_no_trees_by_uuid[quad_uuid] = nil
-    --                 quads_with_lights_by_uuid[quad_uuid] = {
-    --                     expire_tick = event.tick + modified_time_to_live,
-    --                     light = light,
-    --                 }
-    --                 if draw_rectangles then
-    --                     draw_rectangle(surface, area, {r = 1, g = 1, b = 1, a = 1})
-    --                     -- draw_text(surface, average_tree_position, number_of_trees, {r = 1, g = 1, b = 1, a = 1}, 10)
-    --                     -- draw_text(surface, average_tree_position, floor(anchor * 10), {r = 1, g = 1, b = 1, a = 1}, 10)
-    --                     draw_text(surface, average_tree_position, round(intensity, 3), color, 5)
-    --                 end
-    --             else
-    --                 quads_with_lights_by_uuid[quad_uuid] = nil
-    --                 quads_with_no_trees_by_uuid[quad_uuid] = {
-    --                     expire_tick = event.tick + floor((time_to_live + random(1, 120)) * 1.25),
-    --                 }
-    --                 if draw_rectangles then
-    --                     draw_rectangle(surface, area, {r = 0, g = 1, b = 0, a = 1})
-    --                 end
-    --             end
-    --         end
-    --         ::next_quad::
-    --     end
-    --     ::next_player::
-    -- end
 end
 
 local function mod_settings_changed()

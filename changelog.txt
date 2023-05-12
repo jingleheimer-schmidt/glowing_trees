@@ -1,22 +1,25 @@
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.5
 Date: 25APR2023
-  Changes:
+  Features:
     - added new color mode "concentric rainbow circles"
+  Locale:
+    - renamed "Render radius" mod setting to "Player presence detection radius"
+    - modified "Player presence detection radius" description for clarity
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.4
 Date: 21APR2023
-  Changes:
+  Bugfixes:
     - resolved error [bad argument to 'format'] when per-player mod settings were different from map settings
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.3
 Date: 21APR2023
-  Changes:
+  Features:
     - players can now see the glow auras near other players with the same mod settings
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.2
 Date: 20APR2023
-  Changes:
+  Features:
     - added map settings so admins can set default mod settings for players on the map
     - per-player mod settings now sync to map settings by default
     - renamed "Glow aura render radius" to "Render radius"
@@ -25,3 +28,7 @@ Version: 0.0.1
 Date: 20APR2023
   Changes:
     - initial release to the mod portal
+  Features:
+    - added startup setting to overlay a biolumenescent layer to a percent of tree leaves
+    - added startip setting to overlay a biolumenescent layer to a percent of decoratives
+    - added per player settings to control glow aura size, color mode, and render radius
