@@ -1,4 +1,9 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.0.6
+Date: 15MAY2023
+  Features:
+    - added ability to render glow auras in map view
+---------------------------------------------------------------------------------------------------
 Version: 0.0.5
 Date: 25APR2023
   Features:
@@ -14,14 +19,16 @@ Date: 21APR2023
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.3
 Date: 21APR2023
-  Features:
-    - players can now see the glow auras near other players with the same mod settings
+  Changes:
+    - players can now also see glow auras near other players with the same mod settings
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.2
 Date: 20APR2023
   Features:
     - added map settings so admins can set default mod settings for players on the map
+  Changes:
     - per-player mod settings now sync to map settings by default
+  Locale:
     - renamed "Glow aura render radius" to "Render radius"
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.1
