@@ -200,7 +200,7 @@ end
 
 local function concentric_rainbow(x, y, anchor, frequency, surface)
     local distance_from_origin = sqrt(x * x + y * y)
-    frequency = 0.25
+    frequency = 0.025
     return rainbow_color(x, y, distance_from_origin, frequency, surface)
 end
 
@@ -422,6 +422,21 @@ local function round(number, round_to)
     return math.floor(number * multiplier + 0.5) / multiplier
 end
 
+---get the current player position, or the position of the last known selected entity if the player is zoomed in on map mode
+---@param player LuaPlayer
+---@return MapPosition
+local function get_position(player)
+    local position = player.position
+    if player.render_mode == defines.render_mode.chart_zoomed_in then
+        if player.selected then
+            position = player.selected.position
+        elseif global.last_known_selected_entity_position and global.last_known_selected_entity_position[player.index] then
+            position = global.last_known_selected_entity_position[player.index]
+        end
+    end
+    return position
+end
+
 -- return a table with the players sorted into groups based on if they have the same settings
 ---@param connected_players LuaPlayer[]
 local function unique_groups(connected_players)
@@ -487,7 +502,8 @@ local function on_nth_tick(event)
         for _, player in pairs(players) do
             local surface = player.surface
             local surface_index = surface.index
-            local player_position = player.position
+            -- local player_position = player.position
+            local player_position = get_position(player)
             local player_surface_key = format("%s_%d", group_name, surface_index)
             local quad_positions = get_surrounding_chunk_positions(player_position, steps, step_length)
             for _, quad_position in pairs(quad_positions) do
@@ -608,6 +624,22 @@ end
 local function add_commands()
     commands.add_command("glowingdebug", "- toggles debug mode to visualize what the glowing trees algorithm is doing", toggle_debug_mode)
 end
+
+---when selected entity changes and the player is in zoomed in map view, save the entity position to global to use as position for drawing glow auras on_nth_tick
+---@param event EventData.on_selected_entity_changed
+local function selected_entity_changed(event)
+    local player_index = event.player_index
+    local player = game.get_player(player_index)
+    if player and (player.render_mode == defines.render_mode.chart_zoomed_in) then
+        -- on_nth_tick({tick = event.tick, nth_tick = 10})
+        if not global.last_known_selected_entity_position then global.last_known_selected_entity_position = {} end
+        local entity = event.last_entity
+        if player.selected then entity = player.selected end
+        if entity and entity.position then global.last_known_selected_entity_position[player_index] = entity.position end
+    end
+end
+
+script.on_event(defines.events.on_selected_entity_changed, selected_entity_changed)
 
 script.on_nth_tick(10, on_nth_tick)
 
