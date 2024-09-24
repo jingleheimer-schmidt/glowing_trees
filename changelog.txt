@@ -1,7 +1,26 @@
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.7
-Date: ????
+Date: 23SEP2024
   Changes:
+    - standardized code formatting
+  Locale:
+    - added Catalan (ca) locale from Crowdin
+    - added Czech (cs) locale from Crowdin
+    - added German (de) locale from Crowdin
+    - added Spanish (es-ES) locale from Crowdin
+    - added French (fr) locale from Crowdin
+    - added Hungarian (hu) locale from Crowdin
+    - added Italian (it) locale from Crowdin
+    - added Japanese (ja) locale from Crowdin
+    - added Korean (ko) locale from Crowdin
+    - added Polish (pl) locale from Crowdin
+    - added Portuguese (pt-BR) locale from Crowdin
+    - added Russian (ru) locale from Crowdin
+    - added Swedish (sv-SE) locale from Crowdin
+    - added Turkish (tr) locale from Crowdin
+    - added Ukrainian (uk) locale from Crowdin
+    - added Chinese (zh-CN) locale from Crowdin
+    - added Chinese (zh-TW) locale from Crowdin
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.6
 Date: 15MAY2023
