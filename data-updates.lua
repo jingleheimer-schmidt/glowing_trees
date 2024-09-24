@@ -136,14 +136,14 @@ local function set_tint_recursive(animation, color)
 end
 
 local function divide_color(color, divisor)
-    return {r = color.r / divisor, g = color.g / divisor, b = color.b / divisor, a = color.a}
+    return { r = color.r / divisor, g = color.g / divisor, b = color.b / divisor, a = color.a }
 end
 
 local function modify_shift(animation, x_modifier, y_modifier)
     if not animation.layers then
-        animation.shift = {animation.shift[1] + x_modifier, animation.shift[2] + y_modifier}
+        animation.shift = { animation.shift[1] + x_modifier, animation.shift[2] + y_modifier }
         if animation.hr_version then
-            animation.hr_version.shift = {animation.hr_version.shift[1] + x_modifier, animation.hr_version.shift[2] + y_modifier}
+            animation.hr_version.shift = { animation.hr_version.shift[1] + x_modifier, animation.hr_version.shift[2] + y_modifier }
         end
     else
         for _, layer in pairs(animation.layers) do
