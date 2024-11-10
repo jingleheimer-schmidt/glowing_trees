@@ -1,7 +1,11 @@
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.8
-Date: ????
+Date: 10NOV2024
   Changes:
+    - updated to support Factorio 2.0
+    - updated glow auras in map view to use the camera position instead of the last known cursor selection
+  Bugfixes:
+    - fixed error when recursively modifying the scale of animations
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.7
 Date: 23SEP2024
