@@ -427,13 +427,13 @@ end
 ---@return MapPosition
 local function get_position(player)
     local position = player.position
-    if player.render_mode == defines.render_mode.chart_zoomed_in then
-        if player.selected then
-            position = player.selected.position
-        elseif storage.last_known_selected_entity_position and storage.last_known_selected_entity_position[player.index] then
-            position = storage.last_known_selected_entity_position[player.index]
-        end
-    end
+    -- if player.render_mode == defines.render_mode.chart_zoomed_in then
+    --     if player.selected then
+    --         position = player.selected.position
+    --     elseif storage.last_known_selected_entity_position and storage.last_known_selected_entity_position[player.index] then
+    --         position = storage.last_known_selected_entity_position[player.index]
+    --     end
+    -- end
     return position
 end
 
@@ -653,7 +653,7 @@ local function selected_entity_changed(event)
     end
 end
 
-script.on_event(defines.events.on_selected_entity_changed, selected_entity_changed)
+-- script.on_event(defines.events.on_selected_entity_changed, selected_entity_changed)
 
 script.on_nth_tick(10, on_nth_tick)
 
