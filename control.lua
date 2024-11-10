@@ -427,13 +427,13 @@ end
 ---@return MapPosition
 local function get_position(player)
     local position = player.position
-    -- if player.render_mode == defines.render_mode.chart_zoomed_in then
-    --     if player.selected then
-    --         position = player.selected.position
-    --     elseif storage.last_known_selected_entity_position and storage.last_known_selected_entity_position[player.index] then
-    --         position = storage.last_known_selected_entity_position[player.index]
-    --     end
-    -- end
+    if player.render_mode == defines.render_mode.chart_zoomed_in then
+        if player.selected then
+            position = player.selected.position
+        elseif storage.last_known_selected_entity_position and storage.last_known_selected_entity_position[player.index] then
+            position = storage.last_known_selected_entity_position[player.index]
+        end
+    end
     return position
 end
 
@@ -510,8 +510,8 @@ local function on_nth_tick(event)
         for _, player in pairs(players) do
             local surface = player.surface
             local surface_index = surface.index
-            -- local player_position = player.position
-            local player_position = get_position(player)
+            -- local player_position = get_position(player)
+            local player_position = player.position
             local player_surface_key = format("%s_%d", group_name, surface_index)
             local quad_positions = get_surrounding_chunk_positions(player_position, steps, step_length)
             for _, quad_position in pairs(quad_positions) do
