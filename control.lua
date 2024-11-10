@@ -175,7 +175,7 @@ local function surrounding_biome_color(x, y, number_of_trees, frequency, surface
     local map_color = surface.get_tile(x, y).prototype.map_color
     local hidden_tile = surface.get_hidden_tile { x, y }
     if hidden_tile then
-        map_color = game.tile_prototypes[hidden_tile].map_color
+        map_color = prototypes.tile[hidden_tile].map_color
     end
     -- return normalize_color(map_color)
     return map_color
@@ -538,7 +538,7 @@ local function on_nth_tick(event)
                 if quad_with_light_needs_update then
                     if quad_data.expire_tick < event_tick + 60 then
                         local modified_time_to_live = time_to_live + random(1, 120)
-                        rendering.set_time_to_live(quad_data.light, modified_time_to_live)
+                        quad_data.light.time_to_live = modified_time_to_live
                         quads_with_no_trees_by_uuid[quad_uuid] = nil
                         quads_with_lights_by_uuid[quad_uuid].expire_tick = event_tick + modified_time_to_live
                         if draw_rectangles then
