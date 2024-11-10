@@ -231,3 +231,8 @@ for _, decorative in pairs(data.raw["optimized-decorative"]) do
         end
     end
 end
+
+for _, simulation in pairs(data.raw["utility-constants"]["default"]["main_menu_simulations"]) do
+    simulation.mods = simulation.mods or {}
+    table.insert(simulation.mods, "glowing_trees")
+end
