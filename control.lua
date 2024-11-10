@@ -69,7 +69,7 @@ end
 
 local function hsva_to_rgba(h, s, v, a)
     local r, g, b
-    local i = math.floor(h / 60)
+    local i = floor(h / 60)
     local f = h / 60 - i
     local p = v * (1 - s)
     local q = v * (1 - f * s)
@@ -106,9 +106,9 @@ end
 ---@return Color
 local function rainbow_color(x, y, anchor, frequency, surface)
     frequency = frequency or 0.1
-    local r = math.sin(anchor * frequency + 0) * 127 + 128
-    local g = math.sin(anchor * frequency + 2) * 127 + 128
-    local b = math.sin(anchor * frequency + 4) * 127 + 128
+    local r = sin(anchor * frequency + 0) * 127 + 128
+    local g = sin(anchor * frequency + 2) * 127 + 128
+    local b = sin(anchor * frequency + 4) * 127 + 128
     return { r = r, g = g, b = b, a = 255 }
 end
 
