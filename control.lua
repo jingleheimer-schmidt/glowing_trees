@@ -437,8 +437,16 @@ local function get_position(player)
     return position
 end
 
+---@class group_settings
+---@field light_scale string|number
+---@field color_mode string
+---@field brightness_value string|number
+---@field step_count string|number
+---@field players LuaPlayer[]
+
 -- return a table with the players sorted into groups based on if they have the same settings
 ---@param connected_players LuaPlayer[]
+---@return table<string, group_settings>
 local function unique_groups(connected_players)
     local groups = {}
     local game_settings = settings.global
@@ -605,8 +613,14 @@ local function on_nth_tick(event)
     end
 end
 
+---@class quad_with_light_data
+---@field expire_tick number
+---@field light LuaRenderObject?
+
 local function mod_settings_changed()
+    ---@type table<string, quad_with_light_data>
     storage.quads_with_lights_by_uuid = {}
+    ---@type table<string, quad_with_light_data>
     storage.quads_with_no_trees_by_uuid = {}
     rendering.clear("glowing_trees")
 end
