@@ -88,7 +88,7 @@ local function set_animation_scale_recursive(animation, multiplier)
         animation.scale = (animation.scale or 1) * multiplier
     else
         for _, layer in pairs(animation.layers) do
-            set_animation_scale_recursive(layer)
+            set_animation_scale_recursive(layer, multiplier)
         end
     end
 end
