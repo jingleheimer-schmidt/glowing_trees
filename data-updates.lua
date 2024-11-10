@@ -50,6 +50,7 @@ local sprite_animation_small_1 = {
     apply_runtime_tint = true,
 }
 
+---@param animation data.Animation
 local function get_frame_count(animation)
     if not animation.layers then
         return animation.frame_count
@@ -58,6 +59,7 @@ local function get_frame_count(animation)
     end
 end
 
+---@param animation data.Animation
 local function get_repeat_count(animation)
     if not animation.layers then
         return animation.repeat_count
@@ -66,13 +68,11 @@ local function get_repeat_count(animation)
     end
 end
 
+---@param animation data.Animation
 local function draw_as_glow_recursive(animation)
     if not animation.layers then
         if not (animation.draw_as_shadow or animation.draw_as_light or animation.draw_as_glow) then
             animation.draw_as_glow = true
-            if animation.hr_version then
-                animation.hr_version.draw_as_glow = true
-            end
         end
     else
         for _, layer in pairs(animation.layers) do
@@ -81,26 +81,23 @@ local function draw_as_glow_recursive(animation)
     end
 end
 
+---@param animation data.Animation
+---@param multiplier number
 local function set_animation_scale_recursive(animation, multiplier)
     if not animation.layers then
         animation.scale = (animation.scale or 1) * multiplier
-        if animation.hr_version then
-            animation.hr_version.scale = (animation.scale or 1) * multiplier
-        end
     else
         for _, layer in pairs(animation.layers) do
-            set_animation_scale_recursive(layer)
+            set_animation_scale_recursive(layer, multiplier)
         end
     end
 end
 
+---@param animation data.Animation
 local function draw_as_light_recursive(animation)
     if not animation.layers then
         if not (animation.draw_as_shadow or animation.draw_as_light or animation.draw_as_glow) then
             animation.draw_as_light = true
-            if animation.hr_version then
-                animation.hr_version.draw_as_light = true
-            end
         end
     else
         for _, layer in pairs(animation.layers) do
@@ -109,12 +106,10 @@ local function draw_as_light_recursive(animation)
     end
 end
 
+---@param animation data.Animation
 local function enable_runtime_tint_recursive(animation)
     if not animation.layers then
         animation.apply_runtime_tint = true
-        if animation.hr_version then
-            animation.hr_version.apply_runtime_tint = true
-        end
     else
         for _, layer in pairs(animation.layers) do
             enable_runtime_tint_recursive(layer)
@@ -122,12 +117,11 @@ local function enable_runtime_tint_recursive(animation)
     end
 end
 
+---@param animation data.Animation
+---@param color Color
 local function set_tint_recursive(animation, color)
     if not animation.layers then
         animation.tint = color
-        if animation.hr_version then
-            animation.hr_version.tint = color
-        end
     else
         for _, layer in pairs(animation.layers) do
             set_tint_recursive(layer, color)
@@ -135,16 +129,19 @@ local function set_tint_recursive(animation, color)
     end
 end
 
+---@param color Color
+---@param divisor number
+---@return Color
 local function divide_color(color, divisor)
     return { r = color.r / divisor, g = color.g / divisor, b = color.b / divisor, a = color.a }
 end
 
+---@param animation data.Animation
+---@param x_modifier number
+---@param y_modifier number
 local function modify_shift(animation, x_modifier, y_modifier)
     if not animation.layers then
         animation.shift = { animation.shift[1] + x_modifier, animation.shift[2] + y_modifier }
-        if animation.hr_version then
-            animation.hr_version.shift = { animation.hr_version.shift[1] + x_modifier, animation.hr_version.shift[2] + y_modifier }
-        end
     else
         for _, layer in pairs(animation.layers) do
             modify_shift(layer, x_modifier, y_modifier)
@@ -152,12 +149,11 @@ local function modify_shift(animation, x_modifier, y_modifier)
     end
 end
 
+---@param animation data.Animation
+---@param repeat_count number
 local function set_repeat_count_recursive(animation, repeat_count)
     if not animation.layers then
         animation.repeat_count = repeat_count
-        if animation.hr_version then
-            animation.hr_version.repeat_count = repeat_count
-        end
     else
         for _, layer in pairs(animation.layers) do
             set_repeat_count_recursive(layer, repeat_count)
@@ -234,4 +230,9 @@ for _, decorative in pairs(data.raw["optimized-decorative"]) do
             end
         end
     end
+end
+
+for _, simulation in pairs(data.raw["utility-constants"]["default"]["main_menu_simulations"]) do
+    simulation.mods = simulation.mods or {}
+    table.insert(simulation.mods, "glowing_trees")
 end

@@ -69,7 +69,7 @@ end
 
 local function hsva_to_rgba(h, s, v, a)
     local r, g, b
-    local i = math.floor(h / 60)
+    local i = floor(h / 60)
     local f = h / 60 - i
     local p = v * (1 - s)
     local q = v * (1 - f * s)
@@ -106,9 +106,9 @@ end
 ---@return Color
 local function rainbow_color(x, y, anchor, frequency, surface)
     frequency = frequency or 0.1
-    local r = math.sin(anchor * frequency + 0) * 127 + 128
-    local g = math.sin(anchor * frequency + 2) * 127 + 128
-    local b = math.sin(anchor * frequency + 4) * 127 + 128
+    local r = sin(anchor * frequency + 0) * 127 + 128
+    local g = sin(anchor * frequency + 2) * 127 + 128
+    local b = sin(anchor * frequency + 4) * 127 + 128
     return { r = r, g = g, b = b, a = 255 }
 end
 
@@ -173,9 +173,9 @@ end
 ---@return Color
 local function surrounding_biome_color(x, y, number_of_trees, frequency, surface)
     local map_color = surface.get_tile(x, y).prototype.map_color
-    local hidden_tile = surface.get_hidden_tile({ x, y })
+    local hidden_tile = surface.get_hidden_tile { x, y }
     if hidden_tile then
-        map_color = game.tile_prototypes[hidden_tile].map_color
+        map_color = prototypes.tile[hidden_tile].map_color
     end
     -- return normalize_color(map_color)
     return map_color
@@ -430,15 +430,23 @@ local function get_position(player)
     if player.render_mode == defines.render_mode.chart_zoomed_in then
         if player.selected then
             position = player.selected.position
-        elseif global.last_known_selected_entity_position and global.last_known_selected_entity_position[player.index] then
-            position = global.last_known_selected_entity_position[player.index]
+        elseif storage.last_known_selected_entity_position and storage.last_known_selected_entity_position[player.index] then
+            position = storage.last_known_selected_entity_position[player.index]
         end
     end
     return position
 end
 
+---@class group_settings
+---@field light_scale string|number
+---@field color_mode string
+---@field brightness_value string|number
+---@field step_count string|number
+---@field players LuaPlayer[]
+
 -- return a table with the players sorted into groups based on if they have the same settings
 ---@param connected_players LuaPlayer[]
+---@return table<string, group_settings>
 local function unique_groups(connected_players)
     local groups = {}
     local game_settings = settings.global
@@ -472,11 +480,11 @@ local function on_nth_tick(event)
     local step_length = 16
     local nth_tick = event.nth_tick
     local event_tick = event.tick
-    local draw_rectangles = global.draw_rectangles or false
-    global.quads_with_lights_by_uuid = global.quads_with_lights_by_uuid or {}
-    local quads_with_lights_by_uuid = global.quads_with_lights_by_uuid
-    global.quads_with_no_trees_by_uuid = global.quads_with_no_trees_by_uuid or {}
-    local quads_with_no_trees_by_uuid = global.quads_with_no_trees_by_uuid
+    local draw_rectangles = storage.draw_rectangles or false
+    storage.quads_with_lights_by_uuid = storage.quads_with_lights_by_uuid or {}
+    local quads_with_lights_by_uuid = storage.quads_with_lights_by_uuid
+    storage.quads_with_no_trees_by_uuid = storage.quads_with_no_trees_by_uuid or {}
+    local quads_with_no_trees_by_uuid = storage.quads_with_no_trees_by_uuid
     local connected_players = game.connected_players
     for uuid, quad_data in pairs(quads_with_lights_by_uuid) do
         local expire_tick = quad_data.expire_tick
@@ -502,8 +510,8 @@ local function on_nth_tick(event)
         for _, player in pairs(players) do
             local surface = player.surface
             local surface_index = surface.index
-            -- local player_position = player.position
-            local player_position = get_position(player)
+            -- local player_position = get_position(player)
+            local player_position = player.position
             local player_surface_key = format("%s_%d", group_name, surface_index)
             local quad_positions = get_surrounding_chunk_positions(player_position, steps, step_length)
             for _, quad_position in pairs(quad_positions) do
@@ -538,7 +546,7 @@ local function on_nth_tick(event)
                 if quad_with_light_needs_update then
                     if quad_data.expire_tick < event_tick + 60 then
                         local modified_time_to_live = time_to_live + random(1, 120)
-                        rendering.set_time_to_live(quad_data.light, modified_time_to_live)
+                        quad_data.light.time_to_live = modified_time_to_live
                         quads_with_no_trees_by_uuid[quad_uuid] = nil
                         quads_with_lights_by_uuid[quad_uuid].expire_tick = event_tick + modified_time_to_live
                         if draw_rectangles then
@@ -605,15 +613,21 @@ local function on_nth_tick(event)
     end
 end
 
+---@class quad_with_light_data
+---@field expire_tick number
+---@field light LuaRenderObject?
+
 local function mod_settings_changed()
-    global.quads_with_lights_by_uuid = {}
-    global.quads_with_no_trees_by_uuid = {}
+    ---@type table<string, quad_with_light_data>
+    storage.quads_with_lights_by_uuid = {}
+    ---@type table<string, quad_with_light_data>
+    storage.quads_with_no_trees_by_uuid = {}
     rendering.clear("glowing_trees")
 end
 
 local function toggle_debug_mode()
-    global.draw_rectangles = not global.draw_rectangles
-    if global.draw_rectangles then
+    storage.draw_rectangles = not storage.draw_rectangles
+    if storage.draw_rectangles then
         game.print("Glowing Trees: Debug mode enabled")
     else
         game.print("Glowing Trees: Debug mode disabled")
@@ -632,14 +646,14 @@ local function selected_entity_changed(event)
     local player = game.get_player(player_index)
     if player and (player.render_mode == defines.render_mode.chart_zoomed_in) then
         -- on_nth_tick({tick = event.tick, nth_tick = 10})
-        if not global.last_known_selected_entity_position then global.last_known_selected_entity_position = {} end
+        if not storage.last_known_selected_entity_position then storage.last_known_selected_entity_position = {} end
         local entity = event.last_entity
         if player.selected then entity = player.selected end
-        if entity and entity.position then global.last_known_selected_entity_position[player_index] = entity.position end
+        if entity and entity.position then storage.last_known_selected_entity_position[player_index] = entity.position end
     end
 end
 
-script.on_event(defines.events.on_selected_entity_changed, selected_entity_changed)
+-- script.on_event(defines.events.on_selected_entity_changed, selected_entity_changed)
 
 script.on_nth_tick(10, on_nth_tick)
 
