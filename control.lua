@@ -173,7 +173,7 @@ end
 ---@return Color
 local function surrounding_biome_color(x, y, number_of_trees, frequency, surface)
     local map_color = surface.get_tile(x, y).prototype.map_color
-    local hidden_tile = surface.get_hidden_tile({ x, y })
+    local hidden_tile = surface.get_hidden_tile { x, y }
     if hidden_tile then
         map_color = game.tile_prototypes[hidden_tile].map_color
     end
