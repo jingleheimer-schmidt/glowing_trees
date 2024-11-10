@@ -73,9 +73,6 @@ local function draw_as_glow_recursive(animation)
     if not animation.layers then
         if not (animation.draw_as_shadow or animation.draw_as_light or animation.draw_as_glow) then
             animation.draw_as_glow = true
-            if animation.hr_version then
-                animation.hr_version.draw_as_glow = true
-            end
         end
     else
         for _, layer in pairs(animation.layers) do
@@ -89,9 +86,6 @@ end
 local function set_animation_scale_recursive(animation, multiplier)
     if not animation.layers then
         animation.scale = (animation.scale or 1) * multiplier
-        if animation.hr_version then
-            animation.hr_version.scale = (animation.scale or 1) * multiplier
-        end
     else
         for _, layer in pairs(animation.layers) do
             set_animation_scale_recursive(layer)
@@ -104,9 +98,6 @@ local function draw_as_light_recursive(animation)
     if not animation.layers then
         if not (animation.draw_as_shadow or animation.draw_as_light or animation.draw_as_glow) then
             animation.draw_as_light = true
-            if animation.hr_version then
-                animation.hr_version.draw_as_light = true
-            end
         end
     else
         for _, layer in pairs(animation.layers) do
@@ -119,9 +110,6 @@ end
 local function enable_runtime_tint_recursive(animation)
     if not animation.layers then
         animation.apply_runtime_tint = true
-        if animation.hr_version then
-            animation.hr_version.apply_runtime_tint = true
-        end
     else
         for _, layer in pairs(animation.layers) do
             enable_runtime_tint_recursive(layer)
@@ -134,9 +122,6 @@ end
 local function set_tint_recursive(animation, color)
     if not animation.layers then
         animation.tint = color
-        if animation.hr_version then
-            animation.hr_version.tint = color
-        end
     else
         for _, layer in pairs(animation.layers) do
             set_tint_recursive(layer, color)
@@ -157,9 +142,6 @@ end
 local function modify_shift(animation, x_modifier, y_modifier)
     if not animation.layers then
         animation.shift = { animation.shift[1] + x_modifier, animation.shift[2] + y_modifier }
-        if animation.hr_version then
-            animation.hr_version.shift = { animation.hr_version.shift[1] + x_modifier, animation.hr_version.shift[2] + y_modifier }
-        end
     else
         for _, layer in pairs(animation.layers) do
             modify_shift(layer, x_modifier, y_modifier)
@@ -172,9 +154,6 @@ end
 local function set_repeat_count_recursive(animation, repeat_count)
     if not animation.layers then
         animation.repeat_count = repeat_count
-        if animation.hr_version then
-            animation.hr_version.repeat_count = repeat_count
-        end
     else
         for _, layer in pairs(animation.layers) do
             set_repeat_count_recursive(layer, repeat_count)
