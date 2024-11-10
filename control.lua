@@ -430,8 +430,8 @@ local function get_position(player)
     if player.render_mode == defines.render_mode.chart_zoomed_in then
         if player.selected then
             position = player.selected.position
-        elseif global.last_known_selected_entity_position and global.last_known_selected_entity_position[player.index] then
-            position = global.last_known_selected_entity_position[player.index]
+        elseif storage.last_known_selected_entity_position and storage.last_known_selected_entity_position[player.index] then
+            position = storage.last_known_selected_entity_position[player.index]
         end
     end
     return position
@@ -472,11 +472,11 @@ local function on_nth_tick(event)
     local step_length = 16
     local nth_tick = event.nth_tick
     local event_tick = event.tick
-    local draw_rectangles = global.draw_rectangles or false
-    global.quads_with_lights_by_uuid = global.quads_with_lights_by_uuid or {}
-    local quads_with_lights_by_uuid = global.quads_with_lights_by_uuid
-    global.quads_with_no_trees_by_uuid = global.quads_with_no_trees_by_uuid or {}
-    local quads_with_no_trees_by_uuid = global.quads_with_no_trees_by_uuid
+    local draw_rectangles = storage.draw_rectangles or false
+    storage.quads_with_lights_by_uuid = storage.quads_with_lights_by_uuid or {}
+    local quads_with_lights_by_uuid = storage.quads_with_lights_by_uuid
+    storage.quads_with_no_trees_by_uuid = storage.quads_with_no_trees_by_uuid or {}
+    local quads_with_no_trees_by_uuid = storage.quads_with_no_trees_by_uuid
     local connected_players = game.connected_players
     for uuid, quad_data in pairs(quads_with_lights_by_uuid) do
         local expire_tick = quad_data.expire_tick
@@ -606,14 +606,14 @@ local function on_nth_tick(event)
 end
 
 local function mod_settings_changed()
-    global.quads_with_lights_by_uuid = {}
-    global.quads_with_no_trees_by_uuid = {}
+    storage.quads_with_lights_by_uuid = {}
+    storage.quads_with_no_trees_by_uuid = {}
     rendering.clear("glowing_trees")
 end
 
 local function toggle_debug_mode()
-    global.draw_rectangles = not global.draw_rectangles
-    if global.draw_rectangles then
+    storage.draw_rectangles = not storage.draw_rectangles
+    if storage.draw_rectangles then
         game.print("Glowing Trees: Debug mode enabled")
     else
         game.print("Glowing Trees: Debug mode disabled")
@@ -632,10 +632,10 @@ local function selected_entity_changed(event)
     local player = game.get_player(player_index)
     if player and (player.render_mode == defines.render_mode.chart_zoomed_in) then
         -- on_nth_tick({tick = event.tick, nth_tick = 10})
-        if not global.last_known_selected_entity_position then global.last_known_selected_entity_position = {} end
+        if not storage.last_known_selected_entity_position then storage.last_known_selected_entity_position = {} end
         local entity = event.last_entity
         if player.selected then entity = player.selected end
-        if entity and entity.position then global.last_known_selected_entity_position[player_index] = entity.position end
+        if entity and entity.position then storage.last_known_selected_entity_position[player_index] = entity.position end
     end
 end
 
