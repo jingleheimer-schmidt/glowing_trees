@@ -655,6 +655,14 @@ end
 
 -- script.on_event(defines.events.on_selected_entity_changed, selected_entity_changed)
 
+local function reset_storage()
+    storage = {}
+end
+
+script.on_configuration_changed(function()
+    reset_storage()
+end)
+
 script.on_nth_tick(10, on_nth_tick)
 
 script.on_event(defines.events.on_runtime_mod_setting_changed, mod_settings_changed)
