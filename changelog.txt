@@ -1,7 +1,8 @@
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.9
 Date: ????
-  Changes:
+  Bugfixes:
+    - fixed error when loading a save with light render data from a previous version
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.8
 Date: 10NOV2024
