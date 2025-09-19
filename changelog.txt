@@ -1,6 +1,6 @@
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.10
-Date: ????
+Date: 2025-09-19
   Changes:
     - changed the default value of Trees with glowing leaves from Most to None
     - changed the default value of Decoratives with glowing leaves from Few to None
