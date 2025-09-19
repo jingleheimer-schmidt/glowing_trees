@@ -19,7 +19,7 @@ local glow_decoratives_chance = {
     type = "string-setting",
     name = "glowing_decoratives_chance",
     setting_type = "startup",
-    default_value = "few",
+    default_value = "none",
     allowed_values = {
         "none",
         "few",
