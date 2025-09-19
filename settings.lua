@@ -3,7 +3,7 @@ local glow_leaves_chance = {
     type = "string-setting",
     name = "glowing_leaves_chance",
     setting_type = "startup",
-    default_value = "most",
+    default_value = "none",
     allowed_values = {
         "none",
         "few",
