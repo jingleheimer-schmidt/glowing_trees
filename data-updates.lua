@@ -186,9 +186,9 @@ for _, tree in pairs(data.raw.tree) do
             -- modify_shift(light, 0, 1)
             -- modify_shift(sprite, 0, 1)
 
-            local original_frame_count = get_frame_count(variation.leaves) or 1
-            local original_repeat_count = get_repeat_count(variation.leaves) or 1
-            local new_repeat_count = original_frame_count * original_repeat_count
+            -- local original_frame_count = get_frame_count(variation.leaves) or 1
+            -- local original_repeat_count = get_repeat_count(variation.leaves) or 1
+            -- local new_repeat_count = original_frame_count * original_repeat_count
             -- light.repeat_count = new_repeat_count
             -- sprite.repeat_count = new_repeat_count
             -- set_repeat_count_recursive(light, new_repeat_count)
