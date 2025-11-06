@@ -1,7 +1,10 @@
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.11
 Date: ????
-  Changes:
+  Bugfixes:
+    - fixed error when tree leaf variations had nil frame_count
+  Locale:
+    - updated de, ja, ru, and uk translations from Crowdin
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.10
 Date: 2025-09-19
