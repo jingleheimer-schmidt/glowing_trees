@@ -1,6 +1,8 @@
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.11
 Date: ????
+  Changes:
+    - updated mod thumbnail
   Bugfixes:
     - fixed error when tree leaf variations had nil frame_count
   Locale:
