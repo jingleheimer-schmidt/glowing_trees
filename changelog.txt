@@ -14,7 +14,7 @@ Date: 2025-09-19
     - changed the default value of Trees with glowing leaves from Most to None
     - changed the default value of Decoratives with glowing leaves from Few to None
   Locale:
-    - clarify and expand mod setting descriptions
+    - clarified and expanded mod setting descriptions
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.9
 Date: 10NOV2024
