@@ -23,7 +23,7 @@ As a distant planet, Nauvis is naturally shrouded in mystery and wonder. From pr
 # Translation
 Help translate Glowing Trees to more languages: https://crowdin.com/project/factorio-mods-localization
 Currently available locale:
-🇺🇸 English (en), 🇪🇸 Catalan (ca), 🇨🇿 Czech (cs), 🇩🇪 German (de), 🇪🇸 Spanish (es-ES), 🇫🇷 French (fr), 🇭🇺 Hungarian (hu), 🇮🇹 Italian (it), 🇯🇵 Japanese (ja), 🇰🇷 Korean (ko), 🇵🇱 Polish (pl), 🇧🇷 Portuguese (pt-BR), 🇷🇺 Russian (ru), 🇸🇪 Swedish (sv-SE), 🇹🇷 Turkish (tr), 🇺🇦 Ukrainian (uk), 🇨🇳 Chinese (zh-CN), 🇹🇼 Chinese (zh-TW)
+🇺🇸 English (en), 🇦🇩 Catalan (ca), 🇨🇿 Czech (cs), 🇩🇪 German (de), 🇪🇸 Spanish (es-ES), 🇫🇷 French (fr), 🇭🇺 Hungarian (hu), 🇮🇹 Italian (it), 🇯🇵 Japanese (ja), 🇰🇷 Korean (ko), 🇵🇱 Polish (pl), 🇧🇷 Portuguese (pt-BR), 🇷🇺 Russian (ru), 🇸🇪 Swedish (sv-SE), 🇹🇷 Turkish (tr), 🇺🇦 Ukrainian (uk), 🇨🇳 Chinese (zh-CN), 🇹🇼 Chinese (zh-TW)
 
 ---------------------
 # Compatibility
