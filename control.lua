@@ -557,7 +557,7 @@ local function on_nth_tick(event)
                     local area = get_area_of_quad(quad_position, step_length)
                     local trees = surface.find_entities_filtered {
                         area = area,
-                        type = "tree",
+                        type = { "tree", "plant" },
                     }
                     local number_of_trees = #trees
                     if number_of_trees > 1 then
