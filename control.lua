@@ -566,7 +566,7 @@ local function on_nth_tick(event)
                 end
                 if quad_with_light_needs_update then
                     if quad_data.expire_tick < event_tick + 60 then
-                        local modified_time_to_live = time_to_live + random(1, 120)
+                        local modified_time_to_live = time_to_live + random(-60 * 5, 60 * 5)
                         quad_data.light.time_to_live = modified_time_to_live
                         quads_with_no_trees_by_uuid[quad_uuid] = nil
                         quads_with_lights_by_uuid[quad_uuid].expire_tick = event_tick + modified_time_to_live
@@ -620,7 +620,7 @@ local function on_nth_tick(event)
                     else
                         quads_with_lights_by_uuid[quad_uuid] = nil
                         quads_with_no_trees_by_uuid[quad_uuid] = {
-                            expire_tick = event_tick + floor((time_to_live + random(1, 120)) * 1.25),
+                            expire_tick = event_tick + floor((time_to_live + random(-60 * 5, 60 * 5)) * 1.25),
                         }
                         if draw_rectangles then
                             draw_rectangle(surface, area, { r = 0, g = 1, b = 0, a = 1 })
