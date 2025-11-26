@@ -389,6 +389,16 @@ local function draw_rectangle(surface, area, color)
         right_bottom = area.right_bottom,
         surface = surface,
         time_to_live = 60,
+        render_mode = "game"
+    }
+    rendering.draw_rectangle {
+        color = color,
+        filled = false,
+        left_top = area.left_top,
+        right_bottom = area.right_bottom,
+        surface = surface,
+        time_to_live = 60,
+        render_mode = "chart"
     }
 end
 
@@ -401,6 +411,16 @@ local function draw_text(surface, position, text, color, scale, time_to_live)
         target = position,
         time_to_live = time_to_live,
         scale = scale,
+        render_mode = "game"
+    }
+    rendering.draw_text {
+        color = color,
+        text = text,
+        surface = surface,
+        target = position,
+        time_to_live = time_to_live,
+        scale = scale,
+        render_mode = "chart"
     }
 end
 
