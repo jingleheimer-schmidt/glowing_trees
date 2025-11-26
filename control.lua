@@ -508,7 +508,8 @@ local function on_nth_tick(event)
     local connected_players = game.connected_players
     for uuid, quad_data in pairs(quads_with_lights_by_uuid) do
         local expire_tick = quad_data.expire_tick
-        if expire_tick <= event_tick then
+        local valid = quad_data.light and quad_data.light.valid
+        if (expire_tick <= event_tick) or not valid then
             quads_with_lights_by_uuid[uuid] = nil
         end
     end

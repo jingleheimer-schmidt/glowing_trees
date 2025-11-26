@@ -4,6 +4,8 @@ Date: ????
   Changes:
     - added data-stage glowing leaves compatibility for trees grown from seeds
     - removed legacy overlay generation scripts
+  Bugfixes:
+    - fixed error when render objects were cleared or destroyed unexpectedly
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.12
 Date: 2025-11-06
