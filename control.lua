@@ -570,6 +570,25 @@ local function on_nth_tick(event)
                         quad_data.light.time_to_live = modified_time_to_live
                         quads_with_no_trees_by_uuid[quad_uuid] = nil
                         quads_with_lights_by_uuid[quad_uuid].expire_tick = event_tick + modified_time_to_live
+                        local area = get_area_of_quad(quad_position, step_length)
+                        local trees = surface.find_entities_filtered {
+                            area = area,
+                            type = { "tree", "plant" },
+                        }
+                        local number_of_trees = #trees
+                        if number_of_trees > 1 then
+                            local quad_midpoint = get_middle_of_quad(quad_position, step_length)
+                            local tree_positions = {}
+                            for count, tree in pairs(trees) do
+                                insert(tree_positions, tree.position)
+                                if not (count % 5) then insert(tree_positions, quad_midpoint) end
+                            end
+                            insert(tree_positions, quad_midpoint)
+                            local average_tree_position = average_position(tree_positions)
+                            intensity = 0.4 + min(normalize_value(number_of_trees, 1, 32), 0.6)
+                            quad_data.light.intensity = intensity
+                            quad_data.light.target = average_tree_position
+                        end
                         if draw_rectangles then
                             draw_rectangle(surface, get_area_of_quad(quad_position, step_length), { r = 0, g = 0, b = 1, a = 1 })
                         end

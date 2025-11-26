@@ -3,6 +3,7 @@ Version: 0.0.13
 Date: ????
   Changes:
     - added data-stage glowing leaves compatibility for trees grown from seeds
+    - glow intensity is updated as the number of trees in a quad changes
     - removed legacy overlay generation scripts
   Bugfixes:
     - fixed error when render objects were cleared or destroyed unexpectedly
