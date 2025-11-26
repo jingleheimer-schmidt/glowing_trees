@@ -2,6 +2,7 @@
 Version: 0.0.13
 Date: ????
   Changes:
+    - removed legacy overlay generation scripts
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.12
 Date: 2025-11-06
