@@ -161,7 +161,7 @@ local function set_repeat_count_recursive(animation, repeat_count)
     end
 end
 
-for _, tree in pairs(data.raw.tree) do
+for _, tree in pairs(data.raw["tree"]) do
     if tree.variations then
         for _, variation in pairs(tree.variations) do
             if glow_leaves_chance >= math.random() then
