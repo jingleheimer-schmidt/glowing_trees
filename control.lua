@@ -384,11 +384,12 @@ end
 local function draw_rectangle(surface, area, color)
     rendering.draw_rectangle {
         color = color,
+        width = 5,
         filled = false,
         left_top = area.left_top,
         right_bottom = area.right_bottom,
         surface = surface,
-        time_to_live = 60,
+        time_to_live = 120,
         render_mode = "game"
     }
     rendering.draw_rectangle {
@@ -397,7 +398,7 @@ local function draw_rectangle(surface, area, color)
         left_top = area.left_top,
         right_bottom = area.right_bottom,
         surface = surface,
-        time_to_live = 60,
+        time_to_live = 120,
         render_mode = "chart"
     }
 end
@@ -544,7 +545,7 @@ local function on_nth_tick(event)
                 end
                 local quad_has_existing_light = false
                 local quad_has_no_trees = false
-                local quad_data = nil
+                local quad_data = {}
                 if quads_with_lights_by_uuid and quads_with_lights_by_uuid[quad_uuid] then
                     quad_has_existing_light = true
                     quad_data = quads_with_lights_by_uuid[quad_uuid]
