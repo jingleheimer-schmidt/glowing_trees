@@ -5,6 +5,7 @@ Date: ????
     - added data-stage glowing leaves compatibility for trees grown from seeds
     - glow intensity is updated as the number of trees in a quad changes
     - removed legacy overlay generation scripts
+    - low saturation colors are now rendered as white glow
   Bugfixes:
     - fixed error when render objects were cleared or destroyed unexpectedly
 ---------------------------------------------------------------------------------------------------

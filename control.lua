@@ -94,6 +94,7 @@ local function normalize_color(color, brightness_value)
     local r, g, b, a, h, s, v = 0, 0, 0, 0, 0, 0, 0
     h, s, v, a = rgba_to_hsva(color.r, color.g, color.b, color.a)
     -- r, g, b, a = hsva_to_rgba(h, 0.9, 0.15, 1)
+    if s < 0.1 then return { r = 255, g = 255, b = 255, a = a } end
     r, g, b, a = hsva_to_rgba(h, 0.8, brightness_value, 1)
     return { r = r, g = g, b = b, a = a }
 end
