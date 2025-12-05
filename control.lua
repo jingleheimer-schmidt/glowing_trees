@@ -425,6 +425,28 @@ local function draw_text(surface, position, text, color, scale, time_to_live)
     }
 end
 
+local function draw_circle(surface, position, color, scale, time_to_live)
+    time_to_live = time_to_live or (60 * 20)
+    rendering.draw_circle {
+        color = color,
+        radius = scale,
+        filled = true,
+        target = position,
+        surface = surface,
+        time_to_live = time_to_live,
+        render_mode = "game"
+    }
+    rendering.draw_circle {
+        color = color,
+        radius = scale,
+        filled = true,
+        target = position,
+        surface = surface,
+        time_to_live = time_to_live,
+        render_mode = "chart"
+    }
+end
+
 local function average_tree_stage_index(trees)
     local tree_stage_index = 0
     for _, tree in pairs(trees) do
@@ -635,6 +657,7 @@ local function on_nth_tick(event)
                         }
                         if draw_rectangles then
                             draw_rectangle(surface, area, { r = 1, g = 1, b = 1, a = 1 })
+                            draw_circle(surface, average_tree_position, color, light_scale)
                             draw_text(surface, average_tree_position, round(intensity, 3), color, 5)
                         end
                     else
