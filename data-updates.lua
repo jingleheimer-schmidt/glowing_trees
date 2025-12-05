@@ -25,8 +25,8 @@ local glow_leaves_chance = glow_chance_percents[settings.startup["glowing_leaves
 local glow_decoratives_chance = glow_chance_percents[settings.startup["glowing_decoratives_chance"].value]
 -- local glow_aura_haze_chance = glow_chance_percents[settings.startup["glow_aura_haze_chance"].value]
 -- local glow_aura_light_chance = glow_chance_percents[settings.startup["glow_aura_light_chance"].value]
-local glow_aura_haze_chance = 0
-local glow_aura_light_chance = 0
+-- local glow_aura_haze_chance = 0
+-- local glow_aura_light_chance = 0
 
 local light_animation_small_1 = {
     filename = "__glowing_trees__/source_media/tiny_pngs/frame_count_1/glow_1.png",
@@ -161,60 +161,27 @@ local function set_repeat_count_recursive(animation, repeat_count)
     end
 end
 
-for _, tree in pairs(data.raw.tree) do
+for _, tree in pairs(data.raw["tree"]) do
     if tree.variations then
         for _, variation in pairs(tree.variations) do
-            -- local light = table.deepcopy(light_animation_small_1)
-            -- local sprite = table.deepcopy(sprite_animation_small_1)
-            local light = util.table.deepcopy(variation.leaves)
-            local sprite = util.table.deepcopy(variation.leaves)
-
-            local scale_modifier = 5
-            -- local color = {r = 1, g = 1, b = 1, a = 0}
-            local color = tree.colors[math.random(1, #tree.colors)]
-            -- color.a = 0
-            -- local color = {r = .1, g = .1, b = .1, a = 0.5}
-            color = divide_color(color, 10)
-            set_animation_scale_recursive(light, scale_modifier)
-            set_animation_scale_recursive(sprite, scale_modifier)
-            draw_as_light_recursive(light)
-            draw_as_light_recursive(sprite)
-            -- enable_runtime_tint_recursive(light)
-            -- enable_runtime_tint_recursive(sprite)
-            set_tint_recursive(light, color)
-            set_tint_recursive(sprite, color)
-            -- modify_shift(light, 0, 1)
-            -- modify_shift(sprite, 0, 1)
-
-            -- local original_frame_count = get_frame_count(variation.leaves) or 1
-            -- local original_repeat_count = get_repeat_count(variation.leaves) or 1
-            -- local new_repeat_count = original_frame_count * original_repeat_count
-            -- light.repeat_count = new_repeat_count
-            -- sprite.repeat_count = new_repeat_count
-            -- set_repeat_count_recursive(light, new_repeat_count)
-            -- set_repeat_count_recursive(sprite, new_repeat_count)
-
             if glow_leaves_chance >= math.random() then
                 if variation.leaves then
                     draw_as_glow_recursive(variation.leaves)
                 end
             end
+        end
+    end
+end
 
-            local glow_overlay_layers = {
-                layers = {}
-            }
-            if variation.overlay then
-                local animation = util.table.deepcopy(variation.overlay)
-                table.insert(glow_overlay_layers.layers, animation)
-            end
-            if glow_aura_light_chance >= math.random() then
-                table.insert(glow_overlay_layers.layers, light)
-            end
-            if glow_aura_haze_chance >= math.random() then
-                table.insert(glow_overlay_layers.layers, sprite)
-            end
-            if glow_overlay_layers.layers[1] then
-                variation.overlay = glow_overlay_layers
+if data.raw["plant"] then
+    for _, plant in pairs(data.raw["plant"]) do
+        if plant.variations then
+            for _, variation in pairs(plant.variations) do
+                if glow_leaves_chance >= math.random() then
+                    if variation.leaves then
+                        draw_as_glow_recursive(variation.leaves)
+                    end
+                end
             end
         end
     end

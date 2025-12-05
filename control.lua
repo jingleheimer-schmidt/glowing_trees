@@ -94,6 +94,7 @@ local function normalize_color(color, brightness_value)
     local r, g, b, a, h, s, v = 0, 0, 0, 0, 0, 0, 0
     h, s, v, a = rgba_to_hsva(color.r, color.g, color.b, color.a)
     -- r, g, b, a = hsva_to_rgba(h, 0.9, 0.15, 1)
+    if s < 0.1 then return { r = 1, g = 1, b = 1, a = 1 } end
     r, g, b, a = hsva_to_rgba(h, 0.8, brightness_value, 1)
     return { r = r, g = g, b = b, a = a }
 end
@@ -384,11 +385,22 @@ end
 local function draw_rectangle(surface, area, color)
     rendering.draw_rectangle {
         color = color,
+        width = 5,
         filled = false,
         left_top = area.left_top,
         right_bottom = area.right_bottom,
         surface = surface,
-        time_to_live = 60,
+        time_to_live = 120,
+        render_mode = "game"
+    }
+    rendering.draw_rectangle {
+        color = color,
+        filled = false,
+        left_top = area.left_top,
+        right_bottom = area.right_bottom,
+        surface = surface,
+        time_to_live = 120,
+        render_mode = "chart"
     }
 end
 
@@ -401,6 +413,38 @@ local function draw_text(surface, position, text, color, scale, time_to_live)
         target = position,
         time_to_live = time_to_live,
         scale = scale,
+        render_mode = "game"
+    }
+    rendering.draw_text {
+        color = color,
+        text = text,
+        surface = surface,
+        target = position,
+        time_to_live = time_to_live,
+        scale = scale,
+        render_mode = "chart"
+    }
+end
+
+local function draw_circle(surface, position, color, scale, time_to_live)
+    time_to_live = time_to_live or (60 * 20)
+    rendering.draw_circle {
+        color = color,
+        radius = scale,
+        filled = true,
+        target = position,
+        surface = surface,
+        time_to_live = time_to_live,
+        render_mode = "game"
+    }
+    rendering.draw_circle {
+        color = color,
+        radius = scale,
+        filled = true,
+        target = position,
+        surface = surface,
+        time_to_live = time_to_live,
+        render_mode = "chart"
     }
 end
 
@@ -488,7 +532,8 @@ local function on_nth_tick(event)
     local connected_players = game.connected_players
     for uuid, quad_data in pairs(quads_with_lights_by_uuid) do
         local expire_tick = quad_data.expire_tick
-        if expire_tick <= event_tick then
+        local valid = quad_data.light and quad_data.light.valid
+        if (expire_tick <= event_tick) or not valid then
             quads_with_lights_by_uuid[uuid] = nil
         end
     end
@@ -523,7 +568,7 @@ local function on_nth_tick(event)
                 end
                 local quad_has_existing_light = false
                 local quad_has_no_trees = false
-                local quad_data = nil
+                local quad_data = {}
                 if quads_with_lights_by_uuid and quads_with_lights_by_uuid[quad_uuid] then
                     quad_has_existing_light = true
                     quad_data = quads_with_lights_by_uuid[quad_uuid]
@@ -545,10 +590,29 @@ local function on_nth_tick(event)
                 end
                 if quad_with_light_needs_update then
                     if quad_data.expire_tick < event_tick + 60 then
-                        local modified_time_to_live = time_to_live + random(1, 120)
+                        local modified_time_to_live = time_to_live + random(-60 * 5, 60 * 5)
                         quad_data.light.time_to_live = modified_time_to_live
                         quads_with_no_trees_by_uuid[quad_uuid] = nil
                         quads_with_lights_by_uuid[quad_uuid].expire_tick = event_tick + modified_time_to_live
+                        local area = get_area_of_quad(quad_position, step_length)
+                        local trees = surface.find_entities_filtered {
+                            area = area,
+                            type = { "tree", "plant" },
+                        }
+                        local number_of_trees = #trees
+                        if number_of_trees > 1 then
+                            local quad_midpoint = get_middle_of_quad(quad_position, step_length)
+                            local tree_positions = {}
+                            for count, tree in pairs(trees) do
+                                insert(tree_positions, tree.position)
+                                if not (count % 5) then insert(tree_positions, quad_midpoint) end
+                            end
+                            insert(tree_positions, quad_midpoint)
+                            local average_tree_position = average_position(tree_positions)
+                            intensity = 0.4 + min(normalize_value(number_of_trees, 1, 32), 0.6)
+                            quad_data.light.intensity = intensity
+                            quad_data.light.target = average_tree_position
+                        end
                         if draw_rectangles then
                             draw_rectangle(surface, get_area_of_quad(quad_position, step_length), { r = 0, g = 0, b = 1, a = 1 })
                         end
@@ -594,12 +658,13 @@ local function on_nth_tick(event)
                         }
                         if draw_rectangles then
                             draw_rectangle(surface, area, { r = 1, g = 1, b = 1, a = 1 })
+                            draw_circle(surface, average_tree_position, color, light_scale)
                             draw_text(surface, average_tree_position, round(intensity, 3), color, 5)
                         end
                     else
                         quads_with_lights_by_uuid[quad_uuid] = nil
                         quads_with_no_trees_by_uuid[quad_uuid] = {
-                            expire_tick = event_tick + floor((time_to_live + random(1, 120)) * 1.25),
+                            expire_tick = event_tick + floor((time_to_live + random(-60 * 5, 60 * 5)) * 1.25),
                         }
                         if draw_rectangles then
                             draw_rectangle(surface, area, { r = 0, g = 1, b = 0, a = 1 })
