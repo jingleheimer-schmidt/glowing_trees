@@ -173,12 +173,14 @@ for _, tree in pairs(data.raw["tree"]) do
     end
 end
 
-for _, plant in pairs(data.raw["plant"]) do
-    if plant.variations then
-        for _, variation in pairs(plant.variations) do
-            if glow_leaves_chance >= math.random() then
-                if variation.leaves then
-                    draw_as_glow_recursive(variation.leaves)
+if data.raw["plant"] then
+    for _, plant in pairs(data.raw["plant"]) do
+        if plant.variations then
+            for _, variation in pairs(plant.variations) do
+                if glow_leaves_chance >= math.random() then
+                    if variation.leaves then
+                        draw_as_glow_recursive(variation.leaves)
+                    end
                 end
             end
         end
